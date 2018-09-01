@@ -1,0 +1,58 @@
+{% extends 'base.html.twig' %}
+{% block title %}{{ object.name }}{% endblock %}
+{% block body %}
+    <ul class="object">
+        <li>
+            <div class="item-title">Пространство имен: </div>
+            <div class="namespace">{{ object.namespace }}</div>
+        </li>
+        <li>
+            <div class="item-title">Тип: </div>
+            <div class="type">{{ object.type }}</div>
+        </li>
+        <li>
+            <div class="item-title">Имя: </div>
+            <div class="name">{{ object.name }}</div>
+        </li>
+        <li>
+            <div class="item-title">Описание: </div>
+            <div class="name">{{ object.about }}</div>
+        </li>
+        {% if object.interfaces|length > 0 %}
+            <li>
+                <div class="item-title">Реализуемые интерфейсы: </div>
+                <div class="name interface-color">
+                    {% for interface in object.interfaces %}
+                        <a href="/{{ attribute(object.interfaces_files, interface) }}">{{ interface }}</a>
+                    {% endfor %}
+                </div>
+            </li>
+        {% endif %}
+        <li>
+            <div class="item-title">Поля: </div>
+            {% if object.properties|length > 0%}
+                {% for field in object.properties %}
+                    <div class="field" id="{{ field.name }}">
+                        <div class="fullblock">
+                            <div class="about">{{ field.about|raw }}</div>
+                        </div><br/>
+                        <div class="visibility">{{ field.visibility }}</div>
+                        <div class="block">:</div>
+                        <div class="name">{{ field.name }}</div><div class="type">
+                            <span class="block">(</span>
+                            <span class="block">{{ field.type|raw }}</span>
+                            <span class="block">)</span>
+                        </div>
+                        <div class="fullblock"></div>
+                        {% if field.default %}
+                            <div class="block">Инициализировано: </div> <div class="default">{{ field.default }}</pre>
+                            </div>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="name">Не определены.</div>
+            {% endif %}
+        </li>
+    </ul>
+{% endblock %}

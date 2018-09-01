@@ -1,0 +1,6 @@
+{% extends 'base.html.twig' %}
+{% block body %}
+    {% for object in objects %}
+        {% include 'class.html.twig' %}
+    {% endfor %}
+{% endblock %}

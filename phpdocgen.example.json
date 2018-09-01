@@ -1,0 +1,7 @@
+{
+  "src" : "src",
+  "dst" : "docs",
+  "exclude" : [".", "..", ".git", ".idea"],
+  "pattern" : "^[a-zA-Z0-9\\_]+\\.php$",
+  "removed_prefix" : ""
+}
