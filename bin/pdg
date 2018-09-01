@@ -1,0 +1,12 @@
+#!/usr/bin/env php
+<?php
+
+require_once __DIR__ . "/../vendor/autoload.php";
+
+use PDG\Component\Console;
+
+$json = new \PDG\Component\JsonReader('phpdocgen.json');
+$json->read();
+
+$console = new Console($json);
+$console->run();

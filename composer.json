@@ -1,0 +1,22 @@
+{
+    "name": "0x00/phpdocgen",
+    "description": "Easy static documentation generator",
+    "type": "project",
+    "license": "GPL",
+    "authors": [
+        {
+            "name": "0x00-dev",
+            "email": "0x00.dev@gmail.com"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "PDG\\": "src/"
+        }
+    },
+    "minimum-stability": "dev",
+    "require": {},
+    "require-dev": {
+        "twig/twig": "^2.5"
+    }
+}

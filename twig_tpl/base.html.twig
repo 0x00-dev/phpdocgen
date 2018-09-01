@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8"/>
+        <title>
+            {% block title %}PHP static documentation generator{% endblock %}
+        </title>
+    </head>
+    <body>
+    <div class="main-content">
+        <nav class="navbar navbar-expand-lg navbar-custom navbar-dark bg-dark">
+            <a class="navbar-brand">PHP static documentation generator</a>
+        </nav>
+        <hr/>
+        <div class="col-md-12 block">
+            <div class="col-md-3 block">
+                <div class="list-links">
+                    <ul>
+                        {% include 'tmp/links.html.twig' %}
+                    </ul>
+                </div>
+            </div>
+            <div class="col-md-9 block">
+                <div class="content">
+                    {% block body %}{% endblock %}
+                </div>
+            </div>
+        </div>
+    </div>
+        <style>
+            {% include 'css/style.css' %}
+            {% include 'css/bootstrap.min.css' %}
+        </style>
+    </body>
+</html>

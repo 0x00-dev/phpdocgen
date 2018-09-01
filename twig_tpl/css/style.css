@@ -1,0 +1,231 @@
+html, body
+{
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    margin: 0;
+    top: 0;
+    left: 0;
+    background-color: rgb(244, 246, 247)!important;
+}
+
+.main-content
+{
+    float: left;
+    width: 100%;
+    box-shadow:0 5px 5px rgba(200,200,200, 1);
+    padding: 10px;
+    background-color: white;
+    margin-top: 10px;
+    height: auto!important;
+}
+
+.content
+{
+    background-color: rgb(66, 66, 66);
+    padding: 10px;
+    font-style: italic;
+    color: white;
+    float: left;
+    width: 100%;
+    height: auto;
+}
+
+.list-links
+{
+    float: left;
+    width: 100%;
+    padding: 10px;
+    line-height: 20px;
+    border-right: 1px solid rgb(66,66,66);
+    max-height: 82.5vh;
+    overflow: auto;
+}
+
+.list-links .link
+{
+    float: left;
+    text-align: left;
+    color: #0069d9;
+    font-size: 11pt;
+    word-wrap: break-word;
+    list-style-type: none;
+    width: 100%;
+}
+
+.list-links .link a
+{
+    color: rgb(66,66,66);
+    text-decoration: underline;
+}
+
+.no-round
+{
+    border-radius: unset!important;
+}
+
+.both
+{
+    float: left;
+    width: 100%;
+    height: 20px;
+}
+
+.block
+{
+    float: left;
+}
+
+.inner-content
+{
+    float: left;
+    width: 100%;
+    padding: 10px;
+}
+
+.navbar-custom
+{
+    border-radius: 0!important;
+    min-height:50px;
+}
+
+.nav-item
+{
+    font-size: small;
+}
+
+.navbar-brand
+{
+    color: white!important;
+}
+
+.object
+{
+    float: left;
+    padding:10px;
+    list-style-type: none;
+}
+
+.object li
+{
+    float: left;
+    width:100%!important;
+}
+
+.object li *
+{
+    float: left;
+}
+
+.object .namespace
+{
+    color: #efa2a9;
+    margin-left: 10px;
+}
+
+.object .type
+{
+    color: #80bdff;
+    margin-left: 10px;
+}
+
+.object .name
+{
+    margin-left: 10px;
+    color: lightcoral;
+}
+
+.item-title
+{
+    float: left;
+}
+
+.example
+{
+    background-color: rgb(66, 66, 66);
+    padding: 10px;
+    font-style: italic;
+    color: white;
+    float: left;
+    width: 100%;
+    height: auto;
+}
+
+.field
+{
+    float: left;
+    width: 100%;
+    padding: 10px;
+    background-color: rgb(250,250,250);
+    margin-top: 10px;
+    clear: both;
+    color: rgb(66,66,66);
+}
+
+.field *
+{
+    float: left;
+}
+
+.field .about
+{
+    width: 100%;
+    color: rgb(66,66,66);
+    font-style: italic;
+    font-size: 13pt;
+    padding-bottom: 20px;
+}
+
+.field .visibility
+{
+    color: #0c5460;
+    padding-right: 5px;
+}
+
+.field .name
+{
+    color: #bd2130;
+    font-size: 12pt;
+    padding-bottom: 5px;
+    text-decoration: underline;
+    margin-left: 5px;
+}
+
+.field .type
+{
+    color: #117a8b;
+}
+
+.field .default
+{
+    color: #28a745;
+    margin-left: 10px;
+}
+
+.field hr
+{
+    width: calc(100% - 20px);
+    background-color: rgb(66,66,66);
+    color: rgb(66,66,66);
+    border: none;
+    height: 1px;
+}
+
+.fullblock
+{
+    float: left;
+    width: 100%;
+    clear: both;
+}
+
+.field a
+{
+    color: inherit!important;
+    float: left;
+}
+
+.interface-color, .interface-color a, .interface-color a:hover, .interface-color a:focus, .interface-color a:visited
+{
+    color: #28a745;
+}
