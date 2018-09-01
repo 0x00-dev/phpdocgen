@@ -15,7 +15,9 @@
         }
     },
     "minimum-stability": "dev",
-    "require": {},
+    "require": {
+        "codeception/codeception": "^2.4"
+    },
     "require-dev": {
         "twig/twig": "^2.5"
     }
