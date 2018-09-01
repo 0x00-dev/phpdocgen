@@ -40,7 +40,7 @@ class Console
      *
      * @var string
      */
-    private $pattern;
+    private $file_pattern;
 
     /**
      * Префикс.
@@ -61,19 +61,19 @@ class Console
         $this->dst_dir = $json->get('dst', 'docs');
         $this->views = $json->get('views');
         $this->exclude = $json->get('exclude');
-        $this->pattern = $json->get('pattern');
+        $this->file_pattern = $json->get('file_pattern');
         $this->prefix = $json->get('removed_prefix', '');
     }
 
     /**
      * Запустить.
      */
-    public function run()
+    public function run(): void
     {
         $dir_reader = new DirReader();
         $dir_reader->setDir($this->src_dir)
             ->setExclude($this->exclude)
-            ->setFilePattern($this->pattern);
+            ->setFilePattern($this->file_pattern);
         $doc_reader = new DocReader();
         $parser = new Parser();
         $parser->setDocDir($this->dst_dir)
