@@ -81,7 +81,7 @@ class Parser
      *
      * @const string
      */
-    private const IMPLEMENTS_PATTERN = 'implements\s([a-zA-Z0-9\_\\\,]+)$';
+    private const IMPLEMENTS_PATTERN = 'implements\s([a-zA-Z0-9\_\\\,\s]+)$';
 
     /**
      * Шаблон используется.
@@ -477,12 +477,15 @@ class Parser
             $this->object['interfaces'] = \explode(',', $interfaces);
             if (count($this->object['interfaces']) > 0) {
                 foreach ($this->object['interfaces'] as $interface) {
+                    $is_global = $this->isGlobal($interface);
                     $interface_path = $this->find($this->data, 'use\s(.*)' . \str_replace('\\', '\\\\', $interface) . '\;$', 1);
                     $interface_doc_file = ($interface_path ?? $this->object['namespace']) . '/' . $interface . '.html';
                     $interface_doc_file = \str_replace('//', '/', \str_replace('\\', '/', $interface_doc_file));
                     $interface_doc_file = $this->removePrefix($interface_doc_file);
+                    $interface_doc_file = (!$is_global ? '/' : '') . $interface_doc_file;
                     $this->object['interfaces_files'] = [];
-                    $this->object['interfaces_files'][$interface] = $interface_doc_file;
+                    $phpman = 'http://php.net/manual/ru/class.' . \strtolower(\stripcslashes(\trim($interface))) . '.php';
+                    $this->object['interfaces_files'][$interface] = $is_global ? $phpman : $interface_doc_file;
                 }
             }
         }
@@ -590,5 +593,17 @@ class Parser
         $clear_string = \str_replace($this->removed_prefix, '', $string);
 
         return $clear_string;
+    }
+
+    /**
+     * Глобальный.
+     *
+     * @param string $class Класс
+     *
+     * @return bool
+     */
+    private function isGlobal(string $class): bool
+    {
+        return false !== \strpos($class, '\\');
     }
 }
