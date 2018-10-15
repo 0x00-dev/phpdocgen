@@ -9,4 +9,4 @@ $json = new \PDG\Component\JsonReader('phpdocgen.json');
 $json->read();
 
 $console = new Console($json);
-$console->run();
+$console->run($argv);

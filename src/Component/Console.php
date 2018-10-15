@@ -67,8 +67,10 @@ class Console
 
     /**
      * Запустить.
+     *
+     * @param array $args Аргументы
      */
-    public function run()
+    public function run(array $args = [])
     {
         $dir_reader = new DirReader();
         $dir_reader->setDir($this->src_dir)
@@ -81,5 +83,39 @@ class Console
             ->setRemovedPrefix($this->prefix);
         $creator = new Creator($dir_reader, $doc_reader, $parser, $this->views, $this->dst_dir);
         $creator->create();
+        if (\count($args) > 1) {
+            $this->runArg(\str_replace('--', '', $args[1]));
+        }
+    }
+
+    /**
+     * Выполнить аргумент.
+     *
+     * @param string $arg Аргумент
+     */
+    private function runArg(string $arg): void
+    {
+        $method = 'argument' . \ucfirst(\strtolower($arg));
+        if (\method_exists($this, $method)) {
+            $this->{$method}();
+        } else {
+            echo "Неизвестный аргумент." . PHP_EOL;
+        }
+    }
+
+    /**
+     * Очистить кэш.
+     */
+    final function argumentClear(): void
+    {
+        $cache_dir = 'phpdocgen/cache';
+        $dir_reader = new DirReader();
+        $dir_reader->setDir($cache_dir)->do();
+        foreach ($dir_reader->getFiles() as $file) {
+            if (\file_exists($file)) {
+                \unlink($file);
+            }
+        }
+        echo "Кэш очищен." . PHP_EOL;
     }
 }
