@@ -67,7 +67,7 @@ class Parser
      *
      * @const string
      */
-    private const PROPERTY_PATTERN = '\/[*\s]+([a-zA-Zа-яА-Я0-9.\s\-\@\+,{}]+)[\s*]+(@var\s([a-z]+)|\{@inheritdoc\})[\s*\/]+([a-z]+)\s\$([a-z_]+)(\s=\s([\s\na-zA-Z0-9\]\[\@\,\'\"\_\-]+))?\;$';
+    private const PROPERTY_PATTERN = '\/[*\s]+([a-zA-Zа-яА-Я0-9.\s\-\@\+,{}]+)[\s*]+(@var\s([a-zA-Z_\\\]+)|\{@inheritdoc\})[\s*\/]+([a-z]+)(\s[a-zA-Z]+)?\s\$([a-z_]+)(\s=\s([\s\na-zA-Z0-9\]\[\@\,\'\"\_\-]+))?\;$';
 
     /**
      * Шаблон наследования.
@@ -85,8 +85,31 @@ class Parser
 
     /**
      * Шаблон используется.
+     *
+     * @const string
      */
     private const USE_PATTERN = 'use\s(.*)\;$';
+
+    /**
+     * Шаблон метода.
+     *
+     * @const string
+     */
+    private const METHOD_PATTERN = '(\/\*\*)[\s]+([\*\s_\-\+.a-zA-Zа-яА-Я@$\/\|\{\}]+)\s(private|protected|public)\s(static\s)?function\s([a-zA-Z0-9_]+)\((([a-zA-Z_]+\s)?\$[a-zA-Z_]+[,\s=[a-z0-9A-Z\[\]\\\'\"\\\]+]{0,}){0,}\)(:\s?\??([a-zA-Z_]+))?';
+
+    /**
+     * Шаблон параметров метода.
+     *
+     * @const string
+     */
+    private const METHOD_INFO_PARAM_PATTERN = '\@param\s([\w+\\\|]+)\s(\$([a-zA-Z0-9_]+))(\s.*)?';
+
+    /**
+     * Шаблон описания метода.
+     *
+     * @const string
+     */
+    private const METHOD_ABOUT_PATTERN = '^(\/[\*\s]+)?(.*[^\*])|{@inheritdoc}[.\s]$';
 
     /**
      * Индекс modifer.
@@ -138,18 +161,95 @@ class Parser
     private const I_PROPERTY_VISIBILITY = 4;
 
     /**
+     * Индекс property.pre_modifer.
+     *
+     * @const int
+     */
+    private const I_IF_PROPERTY_PREMODIFER = 5;
+
+    /**
      * Индекс property.name.
      *
      * @const int
      */
-    private const I_PROPERTY_NAME = 5;
+    private const I_PROPERTY_NAME = 6;
 
     /**
-     * Предустановленное значение.
+     * Индекс property.default.
      *
      * @const int
      */
     private const I_PROPERTY_DEFAULT = 7;
+
+    /**
+     * Индекс method._info
+     *
+     * @const int
+     */
+    private const I_METHOD_INFO = 2;
+
+    /**
+     * Индекс method.visibility.
+     *
+     * @const int
+     */
+    private const I_METHOD_VISIBILITY = 3;
+
+    /**
+     * Индекс method.pre_modifer.
+     *
+     * @const int
+     */
+    private const I_IF_METHOD_PREMODIFER = 4;
+
+    /**
+     * Индекс method.name.
+     *
+     * @const int
+     */
+    private const I_METHOD_NAME = 5;
+
+    /**
+     * Индекс method.return.
+     *
+     * @const int
+     */
+    private const I_METHOD_RETURN = 8;
+
+    /**
+     * Длина метода имеющего описание.
+     *
+     * @const int
+     */
+    private const COUNT_METHOD_IS_HAS_ABOUT = 5;
+
+    /**
+     * Индекс method.params[N].type.
+     *
+     * @const int
+     */
+    private const I_METHOD_PARAM_TYPE = 1;
+
+    /**
+     * Индекс method.params[N].name.
+     *
+     * @const int
+     */
+    private const I_METHOD_PARAM_NAME = 2;
+
+    /**
+     * Индекс чистого имени параметра метода.
+     *
+     * @const int
+     */
+    private const I_METHOD_PARAM_CLEAR_NAME = 3;
+
+    /**
+     * Индекс method.params[N].about.
+     *
+     * @const int
+     */
+    private const I_METHOD_PARAM_ABOUT = 4;
 
     /**
      * Установить директорию документов.
@@ -222,6 +322,7 @@ class Parser
         $namespace = $this->getNamespace();
         $parent = $this->getParent();
         $interfaces = $this->getInterfaces();
+        $methods = $this->getMethods();
 
         $this->setObjectParent($parent);
         $this->setObjectNamespace($namespace);
@@ -231,6 +332,7 @@ class Parser
         $this->setObjectUses($uses);
         $this->setObjectAbout($about);
         $this->setObjectProperties($properties);
+        $this->setObjectMethods($methods);
 
         return $this->object;
     }
@@ -288,6 +390,30 @@ class Parser
     }
 
     /**
+     * Метод имеет пре-модификатор.
+     *
+     * @param iterable $object Объект
+     *
+     * @return bool
+     */
+    private function hasMethodPreModifer(iterable $object): bool
+    {
+        return \count($object) >= static::I_IF_METHOD_PREMODIFER ? \strlen(\trim($object[static::I_IF_METHOD_PREMODIFER])) > 0 : false;
+    }
+
+    /**
+     * Поле имеет пре-модификатор.
+     *
+     * @param iterable $object Объект
+     *
+     * @return bool
+     */
+    private function hasFieldPreModifer(iterable $object): bool
+    {
+        return \count($object) >= static::I_IF_PROPERTY_PREMODIFER ? \strlen(\trim($object[static::I_IF_PROPERTY_PREMODIFER])) > 0 : false;
+    }
+
+    /**
      * Собрать свойства.
      *
      * @param iterable $data Данные
@@ -310,6 +436,7 @@ class Parser
             }
             $properties[$i]['about'] = $field[static::I_PROPERTY_ABOUT];
             $properties[$i]['visibility'] = $field[static::I_PROPERTY_VISIBILITY];
+            $properties[$i]['pre_modifer'] = $this->hasFieldPreModifer($field) ? \trim($field[static::I_IF_PROPERTY_PREMODIFER]) : null;
             $properties[$i]['name'] = $field[static::I_PROPERTY_NAME];
             $properties[$i]['default'] = \count($field) === 8 ? $field[static::I_PROPERTY_DEFAULT] : null;
             $properties[$i]['parent_doc'] = (($field[2] === '{@inheritdoc}' || $field[2] === '@inheritdoc') && \strlen(\trim($properties[$i]['about'])) === 0);
@@ -429,7 +556,7 @@ class Parser
         $uses = $this->findAll($this->data, static::USE_PATTERN, 1);
         $named_uses = [];
         foreach ($uses as $use) {
-            $uses_vars = explode('\\', $use);
+            $uses_vars = \explode('\\', $use);
             $named_uses[$uses_vars[\count($uses_vars) - 1]] = $use;
         }
 
@@ -464,6 +591,16 @@ class Parser
     private function getInterfaces(): ?string
     {
         return $this->find($this->data, static::IMPLEMENTS_PATTERN, 1);
+    }
+
+    /**
+     * Получить методы.
+     *
+     * @return iterable|null
+     */
+    private function getMethods(): ?iterable
+    {
+        return $this->findAll($this->data, static::METHOD_PATTERN);
     }
 
     /**
@@ -562,6 +699,60 @@ class Parser
                 $this->object['properties'][$key]['about'] = $link;
             }
         }
+    }
+
+    /**
+     * Установить методы.
+     *
+     * @param iterable $methods Методы
+     */
+    private function setObjectMethods(iterable $methods): void
+    {
+        $this->object['methods'] = [];
+        foreach ($methods as $method) {
+            $method_info = $this->prepareMethodInfo($method[static::I_METHOD_INFO]);
+            $current_method = [];
+            $current_method['name'] = $method[static::I_METHOD_NAME];
+            $current_method['pre_modifer'] = $this->hasMethodPreModifer($method) ? \trim($method[static::I_IF_METHOD_PREMODIFER]) : null;
+            $current_method['visibility'] = $method[static::I_METHOD_VISIBILITY];
+            $current_method['return'] = count($method) === 9 ? $method[static::I_METHOD_RETURN] : 'void';
+            $current_method['params'] = $method_info['params'];
+            $current_method['about'] = $method_info['about'];
+            $current_method['params_list'] = $method_info['params_list'];
+            $this->object['methods'][] = $current_method;
+        }
+    }
+
+    /**
+     * Подготовить информацию метода.
+     *
+     * @param string $method_info Информация метода
+     *
+     * @return iterable
+     */
+    private function prepareMethodInfo(string $method_info): iterable
+    {
+        $info = [];
+        $prepared_params = [];
+        $params_list = [];
+        $i = 0;
+        $params = $this->findAll($method_info, static::METHOD_INFO_PARAM_PATTERN);
+        foreach ($params as $param) {
+            $prepared_params[$i]['type'] = $param[static::I_METHOD_PARAM_TYPE];
+            $prepared_params[$i]['name'] = $param[static::I_METHOD_PARAM_NAME];
+            $prepared_params[$i]['clear_name'] = $param[static::I_METHOD_PARAM_CLEAR_NAME];
+            $prepared_params[$i]['about'] = \count($param) >= static::COUNT_METHOD_IS_HAS_ABOUT ? \trim($param[static::I_METHOD_PARAM_ABOUT]) : 'Не описан.';
+            $params_list[$i] = $param[static::I_METHOD_PARAM_CLEAR_NAME];
+            $i++;
+        }
+        $info['params_list'] = $params_list;
+        $info['params'] = $prepared_params;
+        $info['about'] = $this->find($method_info, static::METHOD_ABOUT_PATTERN, 2) ?? 'Не описан.';
+        if (0 === \strpos($info['about'], '* ', 0)) {
+            $info['about'] = \trim(\substr($info['about'], 1, \strlen($info['about']) -1));
+        }
+
+        return $info;
     }
 
     /**

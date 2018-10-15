@@ -23,7 +23,8 @@
                 <div class="item-title">Реализуемые интерфейсы: </div>
                 <div class="name interface-color">
                     {% for interface in object.interfaces %}
-                        <a href="/{{ attribute(object.interfaces_files, interface) }}">{{ interface }}</a>
+                        <a href="{{ attribute(object.interfaces_files, interface) }}">{{ interface }}</a>
+                        <span class="name">&nbsp;</span>
                     {% endfor %}
                 </div>
             </li>
@@ -31,25 +32,72 @@
         <li>
             <div class="item-title">Поля: </div>
             {% if object.properties|length > 0%}
-                {% for field in object.properties %}
-                    <div class="field" id="{{ field.name }}">
-                        <div class="fullblock">
-                            <div class="about">{{ field.about|raw }}</div>
-                        </div><br/>
-                        <div class="visibility">{{ field.visibility }}</div>
-                        <div class="block">:</div>
-                        <div class="name">{{ field.name }}</div><div class="type">
-                            <span class="block">(</span>
-                            <span class="block">{{ field.type|raw }}</span>
-                            <span class="block">)</span>
-                        </div>
-                        <div class="fullblock"></div>
-                        {% if field.default %}
-                            <div class="block">Инициализировано: </div> <div class="default">{{ field.default }}</pre>
+                <div class="spoiler-btn" data-target="fields">-</div>
+                <div class="spoiler-block" id="fields">
+                    {% for field in object.properties %}
+                        <div class="field" id="{{ field.name }}">
+                            {% if field.pre_modifer %}
+                            <div class="fullblock">
+                                <div class="badge badge-info">{{ field.pre_modifer }}</div>
                             </div>
-                        {% endif %}
-                    </div>
-                {% endfor %}
+                            {% endif %}
+                            <div class="fullblock">
+                                <div class="about">{{ field.about|raw }}</div>
+                            </div><br/>
+                            <div class="visibility">{{ field.visibility }}</div>
+                            <div class="block">:</div>
+                            <div class="name">{{ field.name }}</div><div class="type">
+                                <span class="block">(</span>
+                                <span class="block">{{ field.type|raw }}</span>
+                                <span class="block">)</span>
+                            </div>
+                            <div class="fullblock"></div>
+                            {% if field.default %}
+                                <div class="block">Инициализировано: </div> <div class="default">{{ field.default }}</div>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="name">Не определены.</div>
+            {% endif %}
+        </li>
+        <li>
+            <div class="item-title">Методы: </div>
+            {% if object.methods|length > 0 %}
+                <div class="spoiler-btn" data-target="methods">-</div>
+                <div class="spoiler-block" id="methods">
+                    {% for method in object.methods %}
+                        <div class="field" id="{{ method.name }}">
+                            {% if method.pre_modifer %}
+                            <div class="fullblock">
+                                <div class="badge badge-info">{{ method.pre_modifer }}</div>
+                            </div>
+                            {% endif %}
+                            <div class="fullblock">
+                                <div class="about">{{ method.about|raw }}</div>
+                            </div><br/>
+                            <div class="visibility">{{ method.visibility }}</div>
+                            <div class="name">{{ method.name }}</div>
+                            <div class="block">(</div>
+                            <ul class="arg">
+                                {% for arg in method.params_list %}
+                                    <li><a href="#{{ method.name }}_{{ arg }}">${{ arg }}</a></li>
+                                {% endfor %}
+                            </ul>
+                            <div class="block">)</div>
+                            <div class="fullblock">
+                                {% for param in method.params %}
+                                    <div class="method-param" id="{{ method.name }}_{{ param.clear_name }}">
+                                        <div class="type">{{ param.type }}</div>
+                                        <div class="name">{{ param.name }}</div>
+                                        <div class="about">{{ param.about }}</div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
             {% else %}
                 <div class="name">Не определены.</div>
             {% endif %}
