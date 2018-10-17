@@ -81,6 +81,7 @@ class Parser
      *
      * @const string
      */
+  
     private const IMPLEMENTS_PATTERN = 'implements\s([a-zA-Z0-9\_\\\, ]+)$';
 
     /**
@@ -812,5 +813,17 @@ class Parser
         $clear_string = \str_replace($this->removed_prefix, '', $string);
 
         return $clear_string;
+    }
+
+    /**
+     * Глобальный.
+     *
+     * @param string $class Класс
+     *
+     * @return bool
+     */
+    private function isGlobal(string $class): bool
+    {
+        return false !== \strpos($class, '\\');
     }
 }
