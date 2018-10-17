@@ -60,7 +60,7 @@ class Parser
      *
      * @const string
      */
-    private const ABOUT_PATTERN = '^\/[\*\s]+?([\sa-zа-яА-ЯA-Z0-9*.\[;\]-_+=\-\)\(\`\~\@\\\'\"\:\?\/\>\<\!\#\$\%\^\&]+)[*\/]$';
+    private const ABOUT_PATTERN = '^\/[\*\s]+?(([a-zA-Zа-яА-Я0-9.\- ]+)[\.]$|({@inheritdoc}|@inheritdoc[\s]$))$';
 
     /**
      * Шаблон свойств.
@@ -81,7 +81,7 @@ class Parser
      *
      * @const string
      */
-    private const IMPLEMENTS_PATTERN = 'implements\s([a-zA-Z0-9\_\\\,]+)$';
+    private const IMPLEMENTS_PATTERN = 'implements\s([a-zA-Z0-9\_\\\, ]+)$';
 
     /**
      * Шаблон используется.
@@ -102,14 +102,14 @@ class Parser
      *
      * @const string
      */
-    private const METHOD_INFO_PARAM_PATTERN = '\@param\s([\w+\\\|]+)\s(\$([a-zA-Z0-9_]+))(\s.*)?';
+    private const METHOD_INFO_PARAM_PATTERN = '@param\s([\w+\\\|]+)\s(\$([a-zA-Z0-9_]+))([a-zа-я0-9\s]+)?$';
 
     /**
      * Шаблон описания метода.
      *
      * @const string
      */
-    private const METHOD_ABOUT_PATTERN = '^(\/[\*\s]+)?(.*[^\*])|{@inheritdoc}[.\s]$';
+    private const METHOD_ABOUT_PATTERN = '[\* ]([a-zA-Zа-яА-Я0-9.\- ]+)[\.]$|{@inheritdoc}|@inheritdoc$';
 
     /**
      * Индекс modifer.
@@ -214,7 +214,7 @@ class Parser
      *
      * @const int
      */
-    private const I_METHOD_RETURN = 8;
+    private const I_METHOD_RETURN = 9;
 
     /**
      * Длина метода имеющего описание.
@@ -222,6 +222,13 @@ class Parser
      * @const int
      */
     private const COUNT_METHOD_IS_HAS_ABOUT = 5;
+
+    /**
+     * Длина метода имеющего возвращаемое значение.
+     *
+     * @const int
+     */
+    private const COUNT_METHOD_IS_HAS_RETURN = 10;
 
     /**
      * Индекс method.params[N].type.
@@ -611,15 +618,20 @@ class Parser
     private function setObjectInterfaces(?string $interfaces): void
     {
         if (null !== $interfaces) {
+            $interfaces = \str_replace(' ', '', $interfaces);
             $this->object['interfaces'] = \explode(',', $interfaces);
-            if (count($this->object['interfaces']) > 0) {
+            if (\count($this->object['interfaces']) > 0) {
                 foreach ($this->object['interfaces'] as $interface) {
+                    $this->object['interfaces_files'][$interface] = $interface;
+                    $interface_doc = null;
                     $interface_path = $this->find($this->data, 'use\s(.*)' . \str_replace('\\', '\\\\', $interface) . '\;$', 1);
-                    $interface_doc_file = ($interface_path ?? $this->object['namespace']) . '/' . $interface . '.html';
-                    $interface_doc_file = \str_replace('//', '/', \str_replace('\\', '/', $interface_doc_file));
-                    $interface_doc_file = $this->removePrefix($interface_doc_file);
-                    $this->object['interfaces_files'] = [];
-                    $this->object['interfaces_files'][$interface] = $interface_doc_file;
+                    $interface_doc_file = null === $interface_path ? $interface :  $interface_path . $interface . '.html';
+                    $reslashed_doc_file = \str_replace('\\', '/', "/$interface_doc_file");
+                    $unprefixed_doc_file = $this->removePrefix($reslashed_doc_file);
+                    if (\file_exists($this->doc_dir . $unprefixed_doc_file)) {
+                        $interface_doc = $unprefixed_doc_file;
+                    }
+                    $this->object['interfaces_files'][$interface] = $interface_doc ? $this->createLink(\substr($interface_doc, 1, \strlen($interface_doc) - 1), $interface) : $interface;
                 }
             }
         }
@@ -715,7 +727,18 @@ class Parser
             $current_method['name'] = $method[static::I_METHOD_NAME];
             $current_method['pre_modifer'] = $this->hasMethodPreModifer($method) ? \trim($method[static::I_IF_METHOD_PREMODIFER]) : null;
             $current_method['visibility'] = $method[static::I_METHOD_VISIBILITY];
-            $current_method['return'] = count($method) === 9 ? $method[static::I_METHOD_RETURN] : 'void';
+            $current_method['return'] = count($method) >= static::COUNT_METHOD_IS_HAS_RETURN ? $method[static::I_METHOD_RETURN] : 'void';
+            $return_class = $this->getTypeClassOrType($current_method['return']);
+            $doc_file = "{$this->doc_dir}/$return_class.html";
+            if ($current_method['return'] !== $return_class) {
+                if (\file_exists($doc_file)) {
+                    $return_class_link = $this->createLink( "$return_class.html", $current_method['return']);
+                    $current_method['return'] = $return_class_link;
+                } else {
+                    $current_method['return'] = \str_replace('/', '\\', $return_class);
+                }
+
+            }
             $current_method['params'] = $method_info['params'];
             $current_method['about'] = $method_info['about'];
             $current_method['params_list'] = $method_info['params_list'];
@@ -747,9 +770,17 @@ class Parser
         }
         $info['params_list'] = $params_list;
         $info['params'] = $prepared_params;
-        $info['about'] = $this->find($method_info, static::METHOD_ABOUT_PATTERN, 2) ?? 'Не описан.';
-        if (0 === \strpos($info['about'], '* ', 0)) {
-            $info['about'] = \trim(\substr($info['about'], 1, \strlen($info['about']) -1));
+        $about = $this->find($method_info, static::METHOD_ABOUT_PATTERN, 0, ['Не описан.']);
+        switch (\count($about)) {
+            case 1:
+                $info['about'] = \trim($about[0]);
+                break;
+            case 2:
+                $info['about'] = \trim($about[1]);
+                break;
+        }
+        if (!\in_array($info['about'][\strlen($info['about'])-1], ['.', '}'])) {
+            $info['about'] .= '.';
         }
 
         return $info;

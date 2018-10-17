@@ -3,5 +3,8 @@
   "dst" : "docs",
   "exclude" : [".", "..", ".git", ".idea"],
   "file_pattern" : "^[a-zA-Z0-9\\_]+\\.php$",
-  "removed_prefix" : ""
+  "removed_prefix" : "",
+  "twig_options" : {
+    "this_name" :  "PHP static documentation generator"
+  }
 }

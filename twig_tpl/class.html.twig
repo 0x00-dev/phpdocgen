@@ -23,7 +23,7 @@
                 <div class="item-title">Реализуемые интерфейсы: </div>
                 <div class="name interface-color">
                     {% for interface in object.interfaces %}
-                        <a href="{{ attribute(object.interfaces_files, interface) }}">{{ interface }}</a>
+                        {{ attribute(object.interfaces_files, interface)|raw }}
                         <span class="name">&nbsp;</span>
                     {% endfor %}
                 </div>
@@ -86,6 +86,10 @@
                                 {% endfor %}
                             </ul>
                             <div class="block">)</div>
+                            <div class="bothed-block">:</div>
+                            <div class="type return-type">
+                                <span class="block">{{ method.return|raw }}</span>
+                            </div>
                             <div class="fullblock">
                                 {% for param in method.params %}
                                     <div class="method-param" id="{{ method.name }}_{{ param.clear_name }}">

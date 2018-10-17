@@ -46,21 +46,30 @@ class Creator
     private $dst_dir;
 
     /**
+     * Опции.
+     *
+     * @var iterable
+     */
+    private $options = [];
+
+    /**
      * Creator constructor.
      *
      * @param DirReader $dir_reader Читатель директорий
      * @param DocReader $doc_reader Читатель документов
      * @param Parser $parser Парсер
+     * @param iterable $options Опции
      * @param string|null $views Директория шаблонов
      * @param string|null $dst_dir Директория назначения
      */
-    public function __construct(DirReader $dir_reader, DocReader $doc_reader, Parser $parser, string $views = null, string $dst_dir = null)
+    public function __construct(DirReader $dir_reader, DocReader $doc_reader, Parser $parser, iterable $options = [], string $views = null, string $dst_dir = null)
     {
         $this->dir_reader = $dir_reader;
         $this->doc_reader = $doc_reader;
         $this->parser = $parser;
         $this->views = $views ?? '/twig_tpl';
         $this->dst_dir = $dst_dir ?? 'docs';
+        $this->options = $options;
     }
 
     /**
@@ -118,7 +127,7 @@ class Creator
         $index_file = "{$this->dst_dir}/index.html";
         @\unlink($index_file);
         \touch($index_file);
-        $data = $twig->render('base.html.twig');
+        $data = $twig->render('base.html.twig', $this->options);
         \file_put_contents($index_file, $data);
     }
 

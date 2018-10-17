@@ -3,13 +3,13 @@
     <head>
         <meta charset="utf-8"/>
         <title>
-            {% block title %}PHP static documentation generator{% endblock %}
+            {% block title %}{{ this_name ?? "PHP static documentation generator" }}{% endblock %}
         </title>
     </head>
     <body>
     <div class="main-content">
         <nav class="navbar navbar-expand-lg navbar-custom navbar-dark bg-dark">
-            <a class="navbar-brand">PHP static documentation generator</a>
+            <a class="navbar-brand" href="/">{{ this_name ?? "PHP static documentation generator" }}</a>
         </nav>
         <hr/>
         <div class="col-md-12 block">
@@ -22,7 +22,16 @@
             </div>
             <div class="col-md-9 block">
                 <div class="content">
-                    {% block body %}{% endblock %}
+                    {% block body %}
+                        <div class="phpdocgen">Phpdocgen</div>
+                        <div class="fullblock about-this">Генератор статической документации на основании phpdoc</div>
+                        <div class="fullblock white">
+                            <a class="free-link" href="https://github.com/0x00-dev" target="_blank">GitHub</a>
+                        </div>
+                        <div class="fullblock coral">
+                            <a class="free-link" href="mailto:0x00.dev@gmail.com">Gmail</a>
+                        </div>
+                    {% endblock %}
                 </div>
             </div>
         </div>
