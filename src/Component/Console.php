@@ -49,6 +49,13 @@ class Console
      */
     private $prefix;
 
+    /**
+     * Опции.
+     *
+     * @var iterable
+     */
+    private $options = [];
+
 
     /**
      * Console constructor.
@@ -63,6 +70,7 @@ class Console
         $this->exclude = $json->get('exclude');
         $this->pattern = $json->get('pattern');
         $this->prefix = $json->get('removed_prefix', '');
+        $this->options = $json->get('twig_options', []);
     }
 
     /**
@@ -81,7 +89,7 @@ class Console
         $parser->setDocDir($this->dst_dir)
             ->setSrcDir($this->src_dir)
             ->setRemovedPrefix($this->prefix);
-        $creator = new Creator($dir_reader, $doc_reader, $parser, $this->views, $this->dst_dir);
+        $creator = new Creator($dir_reader, $doc_reader, $parser, $this->options, $this->views, $this->dst_dir);
         $creator->create();
         if (\count($args) > 1) {
             $this->runArg(\str_replace('--', '', $args[1]));
