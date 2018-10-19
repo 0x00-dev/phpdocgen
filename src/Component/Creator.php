@@ -116,7 +116,7 @@ class Creator
             $unstarted_path = $this->trimPathStart($html_file_path);
             $docs_file_path = "{$this->dst_dir}/$unstarted_path";
             if (!\file_exists(\dirname($docs_file_path))) {
-                \mkdir(dirname($docs_file_path), 0755, true);
+                \mkdir(\dirname($docs_file_path), 0755, true);
             }
             \touch($docs_file_path);
             $item_data = $this->doc_reader->setClassFile($file)->read();

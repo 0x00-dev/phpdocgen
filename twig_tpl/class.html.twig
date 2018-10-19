@@ -23,7 +23,7 @@
                 <div class="item-title">Реализуемые интерфейсы: </div>
                 <div class="name interface-color">
                     {% for interface in object.interfaces %}
-                        {{ attribute(object.interfaces_files, interface)|raw }}
+                        {{ attribute(object.interfaces_links, interface)|raw }}
                         <span class="name">&nbsp;</span>
                     {% endfor %}
                 </div>
@@ -68,7 +68,7 @@
                 <div class="spoiler-btn" data-target="methods">-</div>
                 <div class="spoiler-block" id="methods">
                     {% for method in object.methods %}
-                        <div class="field" id="{{ method.name }}">
+                        <div class="field" id="method_{{ method.name }}">
                             {% if method.pre_modifer %}
                             <div class="fullblock">
                                 <div class="badge badge-info">{{ method.pre_modifer }}</div>

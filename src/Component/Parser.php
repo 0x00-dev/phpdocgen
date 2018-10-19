@@ -96,7 +96,7 @@ class Parser
      *
      * @const string
      */
-    private const METHOD_PATTERN = '(\/\*\*)[\s]+([\*\s_\-\+.a-zA-Zа-яА-Я@$\/\|\{\}]+)\s(private|protected|public)\s(static\s)?function\s([a-zA-Z0-9_]+)\((([a-zA-Z_]+\s)?\$[a-zA-Z_]+[,\s=[a-z0-9A-Z\[\]\\\'\"\\\]+]{0,}){0,}\)(:\s?\??([a-zA-Z_]+))?';
+    private const METHOD_PATTERN = '(\/\*\*)[\s]+([\*\s_\-\+.a-zA-Zа-яА-Я@$\/\|\{\},]+)\s(private|protected|public)\s(static\s)?function\s([a-zA-Z0-9_]+)\((([a-zA-Z_]+\s)?\$[a-zA-Z_]+[,\s=[a-z0-9A-Z\[\]\\\'\"\\\]+]{0,}){0,}\)(:\s?\??([a-zA-Z_]+))?';
 
     /**
      * Шаблон параметров метода.
@@ -393,6 +393,7 @@ class Parser
             }
             $result = $tmp_result;
         }
+        unset($tmp_result);
 
         return $result;
     }
@@ -419,6 +420,16 @@ class Parser
     private function hasFieldPreModifer(iterable $object): bool
     {
         return \count($object) >= static::I_IF_PROPERTY_PREMODIFER ? \strlen(\trim($object[static::I_IF_PROPERTY_PREMODIFER])) > 0 : false;
+    }
+
+    /**
+     * Имеет интерфейсы.
+     *
+     * @return bool
+     */
+    private function hasInterfaces(): bool
+    {
+        return 0 !== \count($this->object['interfaces']);
     }
 
     /**
@@ -460,14 +471,15 @@ class Parser
      *
      * @param string $href Ссылка
      * @param string $text Текст
+     * @param null $class Класс (селектор)
      *
      * @return string
      */
-    private function createLink(string $href, string $text): string
+    private function createLink(string $href, string $text, $class = null): string
     {
         $clear_href = $this->removePrefix($href);
 
-        return "<a href='/{$clear_href}'>{$text}</a>";
+        return null === $class ? "<a href='/{$clear_href}'>{$text}</a>" : "<a href='/{$clear_href}' class='{$class}'>{$text}</a>";
     }
 
     /**
@@ -608,7 +620,65 @@ class Parser
      */
     private function getMethods(): ?iterable
     {
+        if ('ConfigurationInterface' === $this->getInfo()[static::I_NAME]) {
+            var_dump($this->data);
+        }
         return $this->findAll($this->data, static::METHOD_PATTERN);
+    }
+
+    /**
+     * Получить описание метода.
+     *
+     * @param iterable $method Метод
+     *
+     * @return null|string
+     */
+    private function getMethodAbout(iterable $method): ?string
+    {
+        $about = $this->find($method[static::I_METHOD_INFO], static::METHOD_ABOUT_PATTERN, 0, ['Не описан.']);
+        switch (\count($about)) {
+            case 1:
+                $info = \trim($about[0]);
+                break;
+            case 2:
+                $info = \trim($about[1]);
+                break;
+            default:
+                $info = \trim($about[0]);
+                break;
+        }
+        if (!\in_array($info[\strlen($info)-1], ['.', '}'])) {
+            $info .= '.';
+        }
+
+        return $this->isInheritDoc($info) ? $this->getParentDoc($method, $info) : $info;
+    }
+
+    /**
+     * Получить документацию предка.
+     *
+     * @param iterable $method Метод
+     * @param string $info Информация
+     *
+     * @return null|string
+     */
+    private function getParentDoc(iterable $method, string $info): ?string
+    {
+        $link = $info;
+        $method_name = $method[static::I_METHOD_NAME];
+        if ($this->object['parent']) {
+            $link = $this->createLink("{$this->object['parent_doc_file']}#method_{$method_name}", $this->object['parent'] . '::' . $method_name);
+        } elseif ($this->hasInterfaces()) {
+            $links = null;
+            foreach ($this->object['interfaces'] as $interface) {
+                $interface_file = $this->object['interfaces_files'][$interface];
+                $href_link = $this->createLink( "$interface_file#method_$method_name", $interface . '::' . $method_name);
+                $links .= \file_exists("{$this->doc_dir}/$interface_file") ? $href_link : $interface;
+            }
+            $link = $links;
+        }
+
+        return $link;
     }
 
     /**
@@ -632,7 +702,8 @@ class Parser
                     if (\file_exists($this->doc_dir . $unprefixed_doc_file)) {
                         $interface_doc = $unprefixed_doc_file;
                     }
-                    $this->object['interfaces_files'][$interface] = $interface_doc ? $this->createLink(\substr($interface_doc, 1, \strlen($interface_doc) - 1), $interface) : $interface;
+                    $this->object['interfaces_files'][$interface] = $interface_doc ? \substr($interface_doc, 1, \strlen($interface_doc) - 1) : $interface;
+                    $this->object['interfaces_links'][$interface] = $interface_doc ? $this->createLink(\substr($interface_doc, 1, \strlen($interface_doc) - 1), $interface) : $interface;
                 }
             }
         }
@@ -704,7 +775,7 @@ class Parser
     {
         $this->object['properties'] = $properties;
         foreach ($properties as $key => $property) {
-            $link = '@todo';
+            $link = '@todo';//TODO: Заменить ссылкой.
             if ($property['parent_doc']) {
                 if ($this->object['parent']) {
                     $link = $this->createLink($this->object['parent_doc_file'] . "#{$property['name']}", $this->object['parent'] . '::' . $property['name']);
@@ -721,9 +792,11 @@ class Parser
      */
     private function setObjectMethods(iterable $methods): void
     {
+        if ('ConfigurationInterface' === $this->object['name']) {
+            var_dump($methods);
+        }
         $this->object['methods'] = [];
         foreach ($methods as $method) {
-            $method_info = $this->prepareMethodInfo($method[static::I_METHOD_INFO]);
             $current_method = [];
             $current_method['name'] = $method[static::I_METHOD_NAME];
             $current_method['pre_modifer'] = $this->hasMethodPreModifer($method) ? \trim($method[static::I_IF_METHOD_PREMODIFER]) : null;
@@ -740,6 +813,7 @@ class Parser
                 }
 
             }
+            $method_info = $this->prepareMethodInfo($method);
             $current_method['params'] = $method_info['params'];
             $current_method['about'] = $method_info['about'];
             $current_method['params_list'] = $method_info['params_list'];
@@ -750,16 +824,17 @@ class Parser
     /**
      * Подготовить информацию метода.
      *
-     * @param string $method_info Информация метода
+     * @param iterable $method Метод
      *
      * @return iterable
      */
-    private function prepareMethodInfo(string $method_info): iterable
+    private function prepareMethodInfo(iterable $method): iterable
     {
         $info = [];
         $prepared_params = [];
         $params_list = [];
         $i = 0;
+        $method_info = $method[static::I_METHOD_INFO];
         $params = $this->findAll($method_info, static::METHOD_INFO_PARAM_PATTERN);
         foreach ($params as $param) {
             $prepared_params[$i]['type'] = $param[static::I_METHOD_PARAM_TYPE];
@@ -771,18 +846,7 @@ class Parser
         }
         $info['params_list'] = $params_list;
         $info['params'] = $prepared_params;
-        $about = $this->find($method_info, static::METHOD_ABOUT_PATTERN, 0, ['Не описан.']);
-        switch (\count($about)) {
-            case 1:
-                $info['about'] = \trim($about[0]);
-                break;
-            case 2:
-                $info['about'] = \trim($about[1]);
-                break;
-        }
-        if (!\in_array($info['about'][\strlen($info['about'])-1], ['.', '}'])) {
-            $info['about'] .= '.';
-        }
+        $info['about'] = $this->getMethodAbout($method);
 
         return $info;
     }
@@ -816,14 +880,14 @@ class Parser
     }
 
     /**
-     * Глобальный.
+     * Наследуемая документация.
      *
-     * @param string $class Класс
+     * @param string $doc Документация
      *
      * @return bool
      */
-    private function isGlobal(string $class): bool
+    private function isInheritDoc(string $doc): bool
     {
-        return false !== \strpos($class, '\\');
+        return \in_array($doc, ['@inheritdoc', '{@inheritdoc}']);
     }
 }
