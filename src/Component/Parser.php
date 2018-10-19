@@ -96,7 +96,7 @@ class Parser
      *
      * @const string
      */
-    private const METHOD_PATTERN = '(\/\*\*)[\s]+([\*\s_\-\+.a-zA-Zа-яА-Я@$\/\|\{\},]+)\s(private|protected|public)\s(static\s)?function\s([a-zA-Z0-9_]+)\((([a-zA-Z_]+\s)?\$[a-zA-Z_]+[,\s=[a-z0-9A-Z\[\]\\\'\"\\\]+]{0,}){0,}\)(:\s?\??([a-zA-Z_]+))?';
+    private const METHOD_PATTERN = '(\/\*\*)\s{4,}([\\\*\s_\-\+.a-zA-Zа-яА-Я@$\/\|\{\},]+)\s(private|protected|public)\s(static\s)?function\s([a-zA-Z0-9_]+)\((([a-zA-Z_]+\s)?\$[a-zA-Z_]+[,\s=[a-z0-9A-Z\[\]\\\'\"\\\]+]{0,}){0,}\)';
 
     /**
      * Шаблон параметров метода.
@@ -111,6 +111,13 @@ class Parser
      * @const string
      */
     private const METHOD_ABOUT_PATTERN = '[\* ]([a-zA-Zа-яА-Я0-9.\- ]+)[\.]$|{@inheritdoc}|@inheritdoc$';
+
+    /**
+     * Шаблон возвращаемого значения метода.
+     *
+     * @const string
+     */
+    private const METHOD_RETURN_PATTERN = '@return\s([a-zA-Z0-9_\\\|]+)$';
 
     /**
      * Индекс modifer.
@@ -211,25 +218,11 @@ class Parser
     private const I_METHOD_NAME = 5;
 
     /**
-     * Индекс method.return.
-     *
-     * @const int
-     */
-    private const I_METHOD_RETURN = 9;
-
-    /**
      * Длина метода имеющего описание.
      *
      * @const int
      */
     private const COUNT_METHOD_IS_HAS_ABOUT = 5;
-
-    /**
-     * Длина метода имеющего возвращаемое значение.
-     *
-     * @const int
-     */
-    private const COUNT_METHOD_IS_HAS_RETURN = 10;
 
     /**
      * Индекс method.params[N].type.
@@ -620,9 +613,6 @@ class Parser
      */
     private function getMethods(): ?iterable
     {
-        if ('ConfigurationInterface' === $this->getInfo()[static::I_NAME]) {
-            var_dump($this->data);
-        }
         return $this->findAll($this->data, static::METHOD_PATTERN);
     }
 
@@ -652,6 +642,30 @@ class Parser
         }
 
         return $this->isInheritDoc($info) ? $this->getParentDoc($method, $info) : $info;
+    }
+
+    /**
+     * Получить возвращаемое значение метода.
+     *
+     * @param iterable $method Метод
+     *
+     * @return string|null
+     */
+    private function getMethodReturn(iterable $method): ?string
+    {
+        return $this->find($method[static::I_METHOD_INFO], static::METHOD_RETURN_PATTERN, 1, 'Возвращаемый тип не указан.');
+    }
+
+    /**
+     * Создать список возвращаемых значений метода.
+     *
+     * @param string $returnStatement Возвращаемоые значения
+     *
+     * @return iterable
+     */
+    private function makeMethodReturnsList(string $returnStatement): iterable
+    {
+        return \explode('|', $returnStatement);
     }
 
     /**
@@ -792,27 +806,32 @@ class Parser
      */
     private function setObjectMethods(iterable $methods): void
     {
-        if ('ConfigurationInterface' === $this->object['name']) {
-            var_dump($methods);
-        }
         $this->object['methods'] = [];
         foreach ($methods as $method) {
             $current_method = [];
             $current_method['name'] = $method[static::I_METHOD_NAME];
             $current_method['pre_modifer'] = $this->hasMethodPreModifer($method) ? \trim($method[static::I_IF_METHOD_PREMODIFER]) : null;
             $current_method['visibility'] = $method[static::I_METHOD_VISIBILITY];
-            $current_method['return'] = count($method) >= static::COUNT_METHOD_IS_HAS_RETURN ? $method[static::I_METHOD_RETURN] : 'void';
-            $return_class = $this->getTypeClassOrType($current_method['return']);
-            $doc_file = "{$this->doc_dir}/$return_class.html";
-            if ($current_method['return'] !== $return_class) {
-                if (\file_exists($doc_file)) {
-                    $return_class_link = $this->createLink( "$return_class.html", $current_method['return']);
-                    $current_method['return'] = $return_class_link;
-                } else {
-                    $current_method['return'] = \str_replace('/', '\\', $return_class);
-                }
+            $current_method['returns'] =  $this->makeMethodReturnsList($this->getMethodReturn($method));
+            $uses = $this->getUses();
+            $returns = [];
+            foreach ($current_method['returns'] as $return) {
+                if (\array_key_exists($return, $uses)) {
+                    $return_class = $this->getTypeClassOrType($return);
+                    $doc_file = "{$this->doc_dir}/$return_class.html";
+                    if ($return !== $return_class) {
+                        if (\file_exists($doc_file)) {
+                            $returns[] = $this->createLink( "$return_class.html", $return);
+                        } else {
+                            $returns[] = $return;
+                        }
 
+                    }
+                } else {
+                    $returns[] = $return;
+                }
             }
+            $current_method['return'] = $returns;
             $method_info = $this->prepareMethodInfo($method);
             $current_method['params'] = $method_info['params'];
             $current_method['about'] = $method_info['about'];

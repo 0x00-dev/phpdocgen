@@ -88,7 +88,11 @@
                             <div class="block">)</div>
                             <div class="bothed-block">:</div>
                             <div class="type return-type">
-                                <span class="block">{{ method.return|raw }}</span>
+                                <ul class="arg">
+                                    {% for return in method.return %}
+                                        <li>{{ return|raw }}</li>
+                                    {% endfor %}
+                                </ul>
                             </div>
                             <div class="fullblock">
                                 {% for param in method.params %}
