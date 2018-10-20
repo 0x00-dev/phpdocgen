@@ -96,7 +96,7 @@ class Parser
      *
      * @const string
      */
-    private const METHOD_PATTERN = '(\/\*\*)[\s]+([\*\s_\-\+.a-zA-Zа-яА-Я@$\/\|\{\}]+)\s(private|protected|public)\s(static\s)?function\s([a-zA-Z0-9_]+)\((([a-zA-Z_]+\s)?\$[a-zA-Z_]+[,\s=[a-z0-9A-Z\[\]\\\'\"\\\]+]{0,}){0,}\)(:\s?\??([a-zA-Z_]+))?';
+    private const METHOD_PATTERN = '(\/\*\*)\s{4,}([\\\*\s_\-\+.a-zA-Zа-яА-Я@$\/\|\{\},]+)\s(private|protected|public)\s(static\s)?function\s([a-zA-Z0-9_]+)\((([a-zA-Z_]+\s)?\$[a-zA-Z_]+[,\s=[a-z0-9A-Z\[\]\\\'\"\\\]+]{0,}){0,}\)';
 
     /**
      * Шаблон параметров метода.
@@ -111,6 +111,13 @@ class Parser
      * @const string
      */
     private const METHOD_ABOUT_PATTERN = '[\* ]([a-zA-Zа-яА-Я0-9.\- ]+)[\.]$|{@inheritdoc}|@inheritdoc$';
+
+    /**
+     * Шаблон возвращаемого значения метода.
+     *
+     * @const string
+     */
+    private const METHOD_RETURN_PATTERN = '@return\s([a-zA-Z0-9_\\\|]+)$';
 
     /**
      * Индекс modifer.
@@ -211,25 +218,11 @@ class Parser
     private const I_METHOD_NAME = 5;
 
     /**
-     * Индекс method.return.
-     *
-     * @const int
-     */
-    private const I_METHOD_RETURN = 9;
-
-    /**
      * Длина метода имеющего описание.
      *
      * @const int
      */
     private const COUNT_METHOD_IS_HAS_ABOUT = 5;
-
-    /**
-     * Длина метода имеющего возвращаемое значение.
-     *
-     * @const int
-     */
-    private const COUNT_METHOD_IS_HAS_RETURN = 10;
 
     /**
      * Индекс method.params[N].type.
@@ -326,8 +319,8 @@ class Parser
         $about = $this->getAbout();
         $info = $this->getInfo();
         $properties = $this->getProperties();
-        $uses = $this->getUses();
-        $namespace = $this->getNamespace();
+        $uses = $this->getUses($this->data);
+        $namespace = $this->getNamespace($this->data);
         $parent = $this->getParent();
         $interfaces = $this->getInterfaces();
         $methods = $this->getMethods();
@@ -393,6 +386,7 @@ class Parser
             }
             $result = $tmp_result;
         }
+        unset($tmp_result);
 
         return $result;
     }
@@ -422,6 +416,16 @@ class Parser
     }
 
     /**
+     * Имеет интерфейсы.
+     *
+     * @return bool
+     */
+    private function hasInterfaces(): bool
+    {
+        return 0 !== \count($this->object['interfaces']);
+    }
+
+    /**
      * Собрать свойства.
      *
      * @param iterable $data Данные
@@ -435,7 +439,7 @@ class Parser
         foreach ($data as $field)
         {
             if ($field[static::I_PROPERTY_TYPE] !== $type = $this->getTypeClassOrType($field[static::I_PROPERTY_TYPE])) {
-                $type_class = $this->revertSlashes($type);
+                $type_class = $this->revertSlashesLeft($type);
                 $type_class_file = "{$this->src_dir}/$type_class.php";
                 $link = \file_exists($type_class_file) ? $this->createLink("$type_class.html", $field[static::I_PROPERTY_TYPE]) : $type_class;
                 $properties[$i]['type'] = $link;
@@ -460,14 +464,15 @@ class Parser
      *
      * @param string $href Ссылка
      * @param string $text Текст
+     * @param null $class Класс (селектор)
      *
      * @return string
      */
-    private function createLink(string $href, string $text): string
+    private function createLink(string $href, string $text, $class = null): string
     {
         $clear_href = $this->removePrefix($href);
 
-        return "<a href='/{$clear_href}'>{$text}</a>";
+        return null === $class ? "<a href='/{$clear_href}'>{$text}</a>" : "<a href='/{$clear_href}' class='{$class}'>{$text}</a>";
     }
 
     /**
@@ -503,9 +508,9 @@ class Parser
      */
     private function getTypeClassOrType(string $type): string
     {
-        $uses = $this->getUses();
+        $uses = $this->getUses($this->data);
 
-        return isset($uses[$type]) ? $this->removePrefix($this->revertSlashes($uses[$type])) : $type;
+        return isset($uses[$type]) ? $this->removePrefix($this->revertSlashesLeft($uses[$type])) : $type;
     }
 
     /**
@@ -515,9 +520,25 @@ class Parser
      *
      * @return string
      */
-    private function revertSlashes(string $string): string
+    private function revertSlashesLeft(string $string): string
     {
         return \str_replace('\\', '/', $string);
+    }
+
+    /**
+     * Пространство имен в имя файла.
+     *
+     * @param string $namespace Пространство имен
+     * @param string $ext Расширение
+     *
+     * @return string
+     */
+    private function namespaceToFilename(string $namespace, $ext = '.php'): string
+    {
+        $unslashed_string = $this->revertSlashesLeft($namespace);
+        $unprefixed_string = $this->removePrefix($unslashed_string);
+
+        return $unprefixed_string . $ext;
     }
 
     /**
@@ -528,8 +549,96 @@ class Parser
     private function getAbout(): string
     {
         $about = $this->find($this->data, static::ABOUT_PATTERN, 1, 'Отсутствует');
+        if ($this->isInheritDoc($about)) {
+            $this_file = "{$this->src_dir}/{$this->getNamespace($this->data)}/{$this->getInfo()[static::I_NAME]}";
+            $this_src_file = $this->namespaceToFilename($this_file);
+            $about = $this->getParentAbout($this_src_file);
+        }
 
-        return \str_replace('*', '', $about);
+        return $about;
+    }
+
+    /**
+     * Получить документацию наследуемого класса.
+     *
+     * @param null|string $parent Предок
+     * @param iterable $uses Используемые подключения
+     * @param string $data Данные
+     *
+     * @return null|string
+     */
+    private function getParentFromClass(?string $parent, iterable $uses, string $data): ?string
+    {
+        if (null !== $parent) {
+            if (\array_key_exists($parent, $uses)) {
+                $parent_file = "{$this->src_dir}/{$uses[$parent]}";
+                $parent_src_file = $this->namespaceToFilename($parent_file);
+
+                return \file_exists($parent_src_file) ? $parent_src_file : null;
+            } else {
+                $parent_file = "{$this->src_dir}/{$this->getNamespace($data)}/$parent";
+                $parent_src_file = $this->namespaceToFilename($parent_file);
+
+                return \file_exists($parent_src_file) ? $parent_src_file : null;
+            }
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * Получить документацию наследуемого класса.
+     *
+     * @param iterable $interfaces Интерфейсы
+     * @param iterable $uses Используемые подключения
+     *
+     * @return null|string
+     */
+    private function getParentFromInterfaces(iterable $interfaces, iterable $uses): ?string
+    {
+        $found_parent = null;
+        if (\count($interfaces) > 0) {
+            foreach ($interfaces as $interface) {
+                if (\array_key_exists($interface, $uses)) {
+                    $interface_file = "{$this->src_dir}/{$uses[$interface]}";
+                    $found_parent = $this->namespaceToFilename($interface_file);
+                    break;
+                }
+            }
+        }
+
+        return $found_parent;
+    }
+
+    /**
+     * Получить документацию предка.
+     *
+     * @param string $parent_file Файл предка.
+     *
+     * @return string
+     */
+    private function getParentAbout(string $parent_file): string
+    {
+        if (!\file_exists($parent_file)) {
+            return 'Документация наследуется, но предок не найден.';
+        }
+        $reader = new DocReader();
+        $data = $reader->setClassFile($parent_file)->read();
+        $about = $this->find($data, static::ABOUT_PATTERN, 1);
+        if ($this->isInheritDoc($about)) {
+            $uses = $this->getUses($data);
+            $parent = $this->find($data, static::EXTENDS_PATTERN, 1);
+            $interfaces = $this->findAll($data, static::IMPLEMENTS_PATTERN, 1);
+            if (null !== $class_src_file = $this->getParentFromClass($parent, $uses, $data)) {
+                return $this->getParentAbout($class_src_file);
+            } elseif (null !== $interface_src_file = $this->getParentFromInterfaces($interfaces, $uses)) {
+                return $this->getParentAbout($interface_src_file);
+            } else {
+                return 'Документация наследуется, но предок не найден.';
+            }
+        } else {
+            return $about;
+        }
     }
 
     /**
@@ -557,11 +666,13 @@ class Parser
     /**
      * Получить подключения классов.
      *
+     * @param string $data Данные
+     *
      * @return iterable
      */
-    private function getUses(): iterable
+    private function getUses(string $data): iterable
     {
-        $uses = $this->findAll($this->data, static::USE_PATTERN, 1);
+        $uses = $this->findAll($data, static::USE_PATTERN, 1);
         $named_uses = [];
         foreach ($uses as $use) {
             $uses_vars = \explode('\\', $use);
@@ -574,11 +685,13 @@ class Parser
     /**
      * Получить пространство имен.
      *
+     * @param string $data Данные
+     *
      * @return string
      */
-    private function getNamespace(): string
+    private function getNamespace(string $data): string
     {
-        return $this->find($this->data, static::NAMESPACE_PATTERN, static::I_NS, 'Не указано');
+        return $this->find($data, static::NAMESPACE_PATTERN, static::I_NS, 'Не указано');
     }
 
     /**
@@ -612,6 +725,85 @@ class Parser
     }
 
     /**
+     * Получить описание метода.
+     *
+     * @param iterable $method Метод
+     *
+     * @return null|string
+     */
+    private function getMethodAbout(iterable $method): ?string
+    {
+        $about = $this->find($method[static::I_METHOD_INFO], static::METHOD_ABOUT_PATTERN, 0, ['Не описан.']);
+        switch (\count($about)) {
+            case 1:
+                $info = \trim($about[0]);
+                break;
+            case 2:
+                $info = \trim($about[1]);
+                break;
+            default:
+                $info = \trim($about[0]);
+                break;
+        }
+        if (!\in_array($info[\strlen($info)-1], ['.', '}'])) {
+            $info .= '.';
+        }
+
+        return $this->isInheritDoc($info) ? $this->getParentDoc($method, $info) : $info;
+    }
+
+    /**
+     * Получить возвращаемое значение метода.
+     *
+     * @param iterable $method Метод
+     *
+     * @return string|null
+     */
+    private function getMethodReturn(iterable $method): ?string
+    {
+        return $this->find($method[static::I_METHOD_INFO], static::METHOD_RETURN_PATTERN, 1, 'Возвращаемый тип не указан.');
+    }
+
+    /**
+     * Создать список возвращаемых значений метода.
+     *
+     * @param string $returnStatement Возвращаемоые значения
+     *
+     * @return iterable
+     */
+    private function makeMethodReturnsList(string $returnStatement): iterable
+    {
+        return \explode('|', $returnStatement);
+    }
+
+    /**
+     * Получить документацию предка.
+     *
+     * @param iterable $method Метод
+     * @param string $info Информация
+     *
+     * @return null|string
+     */
+    private function getParentDoc(iterable $method, string $info): ?string
+    {
+        $link = $info;
+        $method_name = $method[static::I_METHOD_NAME];
+        if ($this->object['parent']) {
+            $link = $this->createLink("{$this->object['parent_doc_file']}#method_{$method_name}", $this->object['parent'] . '::' . $method_name);
+        } elseif ($this->hasInterfaces()) {
+            $links = null;
+            foreach ($this->object['interfaces'] as $interface) {
+                $interface_file = $this->object['interfaces_files'][$interface];
+                $href_link = $this->createLink( "$interface_file#method_$method_name", $interface . '::' . $method_name);
+                $links .= \file_exists("{$this->doc_dir}/$interface_file") ? $href_link : $interface;
+            }
+            $link = $links;
+        }
+
+        return $link;
+    }
+
+    /**
      * Установить интерфейсы объекта.
      *
      * @param string $interfaces Инерфейсы
@@ -632,7 +824,8 @@ class Parser
                     if (\file_exists($this->doc_dir . $unprefixed_doc_file)) {
                         $interface_doc = $unprefixed_doc_file;
                     }
-                    $this->object['interfaces_files'][$interface] = $interface_doc ? $this->createLink(\substr($interface_doc, 1, \strlen($interface_doc) - 1), $interface) : $interface;
+                    $this->object['interfaces_files'][$interface] = $interface_doc ? \substr($interface_doc, 1, \strlen($interface_doc) - 1) : $interface;
+                    $this->object['interfaces_links'][$interface] = $interface_doc ? $this->createLink(\substr($interface_doc, 1, \strlen($interface_doc) - 1), $interface) : $interface;
                 }
             }
         }
@@ -704,7 +897,7 @@ class Parser
     {
         $this->object['properties'] = $properties;
         foreach ($properties as $key => $property) {
-            $link = '@todo';
+            $link = '@todo';//TODO: Заменить ссылкой.
             if ($property['parent_doc']) {
                 if ($this->object['parent']) {
                     $link = $this->createLink($this->object['parent_doc_file'] . "#{$property['name']}", $this->object['parent'] . '::' . $property['name']);
@@ -723,23 +916,31 @@ class Parser
     {
         $this->object['methods'] = [];
         foreach ($methods as $method) {
-            $method_info = $this->prepareMethodInfo($method[static::I_METHOD_INFO]);
             $current_method = [];
             $current_method['name'] = $method[static::I_METHOD_NAME];
             $current_method['pre_modifer'] = $this->hasMethodPreModifer($method) ? \trim($method[static::I_IF_METHOD_PREMODIFER]) : null;
             $current_method['visibility'] = $method[static::I_METHOD_VISIBILITY];
-            $current_method['return'] = count($method) >= static::COUNT_METHOD_IS_HAS_RETURN ? $method[static::I_METHOD_RETURN] : 'void';
-            $return_class = $this->getTypeClassOrType($current_method['return']);
-            $doc_file = "{$this->doc_dir}/$return_class.html";
-            if ($current_method['return'] !== $return_class) {
-                if (\file_exists($doc_file)) {
-                    $return_class_link = $this->createLink( "$return_class.html", $current_method['return']);
-                    $current_method['return'] = $return_class_link;
-                } else {
-                    $current_method['return'] = \str_replace('/', '\\', $return_class);
-                }
+            $current_method['returns'] =  $this->makeMethodReturnsList($this->getMethodReturn($method));
+            $uses = $this->getUses($this->data);
+            $returns = [];
+            foreach ($current_method['returns'] as $return) {
+                if (\array_key_exists($return, $uses)) {
+                    $return_class = $this->getTypeClassOrType($return);
+                    $doc_file = "{$this->doc_dir}/$return_class.html";
+                    if ($return !== $return_class) {
+                        if (\file_exists($doc_file)) {
+                            $returns[] = $this->createLink( "$return_class.html", $return);
+                        } else {
+                            $returns[] = $return;
+                        }
 
+                    }
+                } else {
+                    $returns[] = $return;
+                }
             }
+            $current_method['return'] = $returns;
+            $method_info = $this->prepareMethodInfo($method);
             $current_method['params'] = $method_info['params'];
             $current_method['about'] = $method_info['about'];
             $current_method['params_list'] = $method_info['params_list'];
@@ -750,16 +951,17 @@ class Parser
     /**
      * Подготовить информацию метода.
      *
-     * @param string $method_info Информация метода
+     * @param iterable $method Метод
      *
      * @return iterable
      */
-    private function prepareMethodInfo(string $method_info): iterable
+    private function prepareMethodInfo(iterable $method): iterable
     {
         $info = [];
         $prepared_params = [];
         $params_list = [];
         $i = 0;
+        $method_info = $method[static::I_METHOD_INFO];
         $params = $this->findAll($method_info, static::METHOD_INFO_PARAM_PATTERN);
         foreach ($params as $param) {
             $prepared_params[$i]['type'] = $param[static::I_METHOD_PARAM_TYPE];
@@ -771,18 +973,7 @@ class Parser
         }
         $info['params_list'] = $params_list;
         $info['params'] = $prepared_params;
-        $about = $this->find($method_info, static::METHOD_ABOUT_PATTERN, 0, ['Не описан.']);
-        switch (\count($about)) {
-            case 1:
-                $info['about'] = \trim($about[0]);
-                break;
-            case 2:
-                $info['about'] = \trim($about[1]);
-                break;
-        }
-        if (!\in_array($info['about'][\strlen($info['about'])-1], ['.', '}'])) {
-            $info['about'] .= '.';
-        }
+        $info['about'] = $this->getMethodAbout($method);
 
         return $info;
     }
@@ -795,7 +986,7 @@ class Parser
         if ($this->object['parent']) {
             $parent_path = $this->find($this->data, '~use\s(.*)' . \str_replace('\\', '\\\\', $this->object['parent']) . '\;$~miu');
             $parent_doc_file = ($parent_path ?? $this->object['namespace']) . '/' . $this->object['parent'] . '.html';
-            $parent_doc_file = $this->revertSlashes($parent_doc_file);
+            $parent_doc_file = $this->revertSlashesLeft($parent_doc_file);
             $parent_doc_file = $this->removePrefix($parent_doc_file);
             $this->object['parent_doc_file'] = \str_replace('//', '/', \str_replace('\\', '/', $parent_doc_file));
         }
@@ -816,14 +1007,14 @@ class Parser
     }
 
     /**
-     * Глобальный.
+     * Наследуемая документация.
      *
-     * @param string $class Класс
+     * @param string $doc Документация
      *
      * @return bool
      */
-    private function isGlobal(string $class): bool
+    private function isInheritDoc(string $doc): bool
     {
-        return false !== \strpos($class, '\\');
+        return \in_array(\trim($doc), ['@inheritdoc', '{@inheritdoc}']);
     }
 }
