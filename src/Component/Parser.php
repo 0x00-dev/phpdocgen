@@ -319,8 +319,8 @@ class Parser
         $about = $this->getAbout();
         $info = $this->getInfo();
         $properties = $this->getProperties();
-        $uses = $this->getUses();
-        $namespace = $this->getNamespace();
+        $uses = $this->getUses($this->data);
+        $namespace = $this->getNamespace($this->data);
         $parent = $this->getParent();
         $interfaces = $this->getInterfaces();
         $methods = $this->getMethods();
@@ -439,7 +439,7 @@ class Parser
         foreach ($data as $field)
         {
             if ($field[static::I_PROPERTY_TYPE] !== $type = $this->getTypeClassOrType($field[static::I_PROPERTY_TYPE])) {
-                $type_class = $this->revertSlashes($type);
+                $type_class = $this->revertSlashesLeft($type);
                 $type_class_file = "{$this->src_dir}/$type_class.php";
                 $link = \file_exists($type_class_file) ? $this->createLink("$type_class.html", $field[static::I_PROPERTY_TYPE]) : $type_class;
                 $properties[$i]['type'] = $link;
@@ -508,9 +508,9 @@ class Parser
      */
     private function getTypeClassOrType(string $type): string
     {
-        $uses = $this->getUses();
+        $uses = $this->getUses($this->data);
 
-        return isset($uses[$type]) ? $this->removePrefix($this->revertSlashes($uses[$type])) : $type;
+        return isset($uses[$type]) ? $this->removePrefix($this->revertSlashesLeft($uses[$type])) : $type;
     }
 
     /**
@@ -520,9 +520,25 @@ class Parser
      *
      * @return string
      */
-    private function revertSlashes(string $string): string
+    private function revertSlashesLeft(string $string): string
     {
         return \str_replace('\\', '/', $string);
+    }
+
+    /**
+     * Пространство имен в имя файла.
+     *
+     * @param string $namespace Пространство имен
+     * @param string $ext Расширение
+     *
+     * @return string
+     */
+    private function namespaceToFilename(string $namespace, $ext = '.php'): string
+    {
+        $unslashed_string = $this->revertSlashesLeft($namespace);
+        $unprefixed_string = $this->removePrefix($unslashed_string);
+
+        return $unprefixed_string . $ext;
     }
 
     /**
@@ -533,8 +549,96 @@ class Parser
     private function getAbout(): string
     {
         $about = $this->find($this->data, static::ABOUT_PATTERN, 1, 'Отсутствует');
+        if ($this->isInheritDoc($about)) {
+            $this_file = "{$this->src_dir}/{$this->getNamespace($this->data)}/{$this->getInfo()[static::I_NAME]}";
+            $this_src_file = $this->namespaceToFilename($this_file);
+            $about = $this->getParentAbout($this_src_file);
+        }
 
-        return \str_replace('*', '', $about);
+        return $about;
+    }
+
+    /**
+     * Получить документацию наследуемого класса.
+     *
+     * @param null|string $parent Предок
+     * @param iterable $uses Используемые подключения
+     * @param string $data Данные
+     *
+     * @return null|string
+     */
+    private function getParentFromClass(?string $parent, iterable $uses, string $data): ?string
+    {
+        if (null !== $parent) {
+            if (\array_key_exists($parent, $uses)) {
+                $parent_file = "{$this->src_dir}/{$uses[$parent]}";
+                $parent_src_file = $this->namespaceToFilename($parent_file);
+
+                return \file_exists($parent_src_file) ? $parent_src_file : null;
+            } else {
+                $parent_file = "{$this->src_dir}/{$this->getNamespace($data)}/$parent";
+                $parent_src_file = $this->namespaceToFilename($parent_file);
+
+                return \file_exists($parent_src_file) ? $parent_src_file : null;
+            }
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * Получить документацию наследуемого класса.
+     *
+     * @param iterable $interfaces Интерфейсы
+     * @param iterable $uses Используемые подключения
+     *
+     * @return null|string
+     */
+    private function getParentFromInterfaces(iterable $interfaces, iterable $uses): ?string
+    {
+        $found_parent = null;
+        if (\count($interfaces) > 0) {
+            foreach ($interfaces as $interface) {
+                if (\array_key_exists($interface, $uses)) {
+                    $interface_file = "{$this->src_dir}/{$uses[$interface]}";
+                    $found_parent = $this->namespaceToFilename($interface_file);
+                    break;
+                }
+            }
+        }
+
+        return $found_parent;
+    }
+
+    /**
+     * Получить документацию предка.
+     *
+     * @param string $parent_file Файл предка.
+     *
+     * @return string
+     */
+    private function getParentAbout(string $parent_file): string
+    {
+        if (!\file_exists($parent_file)) {
+            return 'Документация наследуется, но предок не найден.';
+        }
+        $reader = new DocReader();
+        $data = $reader->setClassFile($parent_file)->read();
+        $about = $this->find($data, static::ABOUT_PATTERN, 1);
+        if ($this->isInheritDoc($about)) {
+            $uses = $this->getUses($data);
+            $parent = $this->find($data, static::EXTENDS_PATTERN, 1);
+            $interfaces = $this->findAll($data, static::IMPLEMENTS_PATTERN, 1);
+            if (null !== $class_src_file = $this->getParentFromClass($parent, $uses, $data)) {
+                return $this->getParentAbout($class_src_file);
+            } elseif (null !== $interface_src_file = $this->getParentFromInterfaces($interfaces, $uses)) {
+                return $this->getParentAbout($interface_src_file);
+            } else {
+                return 'Документация наследуется, но предок не найден.';
+            }
+        } else {
+            return $about;
+        }
     }
 
     /**
@@ -562,11 +666,13 @@ class Parser
     /**
      * Получить подключения классов.
      *
+     * @param string $data Данные
+     *
      * @return iterable
      */
-    private function getUses(): iterable
+    private function getUses(string $data): iterable
     {
-        $uses = $this->findAll($this->data, static::USE_PATTERN, 1);
+        $uses = $this->findAll($data, static::USE_PATTERN, 1);
         $named_uses = [];
         foreach ($uses as $use) {
             $uses_vars = \explode('\\', $use);
@@ -579,11 +685,13 @@ class Parser
     /**
      * Получить пространство имен.
      *
+     * @param string $data Данные
+     *
      * @return string
      */
-    private function getNamespace(): string
+    private function getNamespace(string $data): string
     {
-        return $this->find($this->data, static::NAMESPACE_PATTERN, static::I_NS, 'Не указано');
+        return $this->find($data, static::NAMESPACE_PATTERN, static::I_NS, 'Не указано');
     }
 
     /**
@@ -813,7 +921,7 @@ class Parser
             $current_method['pre_modifer'] = $this->hasMethodPreModifer($method) ? \trim($method[static::I_IF_METHOD_PREMODIFER]) : null;
             $current_method['visibility'] = $method[static::I_METHOD_VISIBILITY];
             $current_method['returns'] =  $this->makeMethodReturnsList($this->getMethodReturn($method));
-            $uses = $this->getUses();
+            $uses = $this->getUses($this->data);
             $returns = [];
             foreach ($current_method['returns'] as $return) {
                 if (\array_key_exists($return, $uses)) {
@@ -878,7 +986,7 @@ class Parser
         if ($this->object['parent']) {
             $parent_path = $this->find($this->data, '~use\s(.*)' . \str_replace('\\', '\\\\', $this->object['parent']) . '\;$~miu');
             $parent_doc_file = ($parent_path ?? $this->object['namespace']) . '/' . $this->object['parent'] . '.html';
-            $parent_doc_file = $this->revertSlashes($parent_doc_file);
+            $parent_doc_file = $this->revertSlashesLeft($parent_doc_file);
             $parent_doc_file = $this->removePrefix($parent_doc_file);
             $this->object['parent_doc_file'] = \str_replace('//', '/', \str_replace('\\', '/', $parent_doc_file));
         }
@@ -907,6 +1015,6 @@ class Parser
      */
     private function isInheritDoc(string $doc): bool
     {
-        return \in_array($doc, ['@inheritdoc', '{@inheritdoc}']);
+        return \in_array(\trim($doc), ['@inheritdoc', '{@inheritdoc}']);
     }
 }
