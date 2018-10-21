@@ -90,6 +90,7 @@ class Console
             ->setSrcDir($this->src_dir)
             ->setRemovedPrefix($this->prefix);
         $creator = new Creator($dir_reader, $doc_reader, $parser, $this->options, $this->views, $this->dst_dir);
+        $creator->setRemovedPrefix($this->prefix);
         $creator->create();
         if (\count($args) > 1) {
             $this->runArg(\str_replace('--', '', $args[1]));
