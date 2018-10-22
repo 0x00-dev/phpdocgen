@@ -74,7 +74,7 @@ class Parser
      *
      * @const string
      */
-    private const EXTENDS_PATTERN = 'extends\s([a-zA-Z0-9\_\\\]+)$';
+    private const EXTENDS_PATTERN = 'extends\s([a-zA-Z0-9\_\\\]+)';
 
     /**
      * Шаблон интерфейса.
@@ -795,7 +795,9 @@ class Parser
             foreach ($this->object['interfaces'] as $interface) {
                 $interface_file = $this->object['interfaces_files'][$interface];
                 $href_link = $this->createLink( "$interface_file#method_$method_name", $interface . '::' . $method_name);
-                $links .= \file_exists("{$this->doc_dir}/$interface_file") ? $href_link : $interface;
+                if (\file_exists("{$this->doc_dir}/$interface_file")) {
+                    $links .= $href_link;
+                }
             }
             $link = $links;
         }
@@ -897,13 +899,12 @@ class Parser
     {
         $this->object['properties'] = $properties;
         foreach ($properties as $key => $property) {
-            $link = '@todo';//TODO: Заменить ссылкой.
             if ($property['parent_doc']) {
-                if ($this->object['parent']) {
-                    $link = $this->createLink($this->object['parent_doc_file'] . "#{$property['name']}", $this->object['parent'] . '::' . $property['name']);
-                }
-                $this->object['properties'][$key]['about'] = $link;
+                $link = $this->createLink($this->object['parent_doc_file'] . "#{$property['name']}", $this->object['parent'] . '::' . $property['name']);
+            } else {
+                $link = $property['about'];
             }
+            $this->object['properties'][$key]['about'] = $link;
         }
     }
 
@@ -984,7 +985,7 @@ class Parser
     private function createParentDocName(): void
     {
         if ($this->object['parent']) {
-            $parent_path = $this->find($this->data, '~use\s(.*)' . \str_replace('\\', '\\\\', $this->object['parent']) . '\;$~miu');
+            $parent_path = $this->find($this->data, 'use\s(.*)' . \str_replace('\\', '\\\\', $this->object['parent']) . '\;$', 1);
             $parent_doc_file = ($parent_path ?? $this->object['namespace']) . '/' . $this->object['parent'] . '.html';
             $parent_doc_file = $this->revertSlashesLeft($parent_doc_file);
             $parent_doc_file = $this->removePrefix($parent_doc_file);

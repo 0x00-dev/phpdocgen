@@ -46,6 +46,13 @@ class Creator
     private $dst_dir;
 
     /**
+     * Префикс.
+     *
+     * @var string
+     */
+    private $removed_prefix;
+
+    /**
      * Опции.
      *
      * @var iterable
@@ -87,6 +94,14 @@ class Creator
     }
 
     /**
+     * @param string $removed_prefix
+     */
+    public function setRemovedPrefix(string $removed_prefix): void
+    {
+        $this->removed_prefix = $removed_prefix;
+    }
+
+    /**
      * Создать.
      */
     public function create()
@@ -102,8 +117,9 @@ class Creator
             $items = $this->parser->setData($data)->read();
             $html_file_path = $this->phpToHtmlExt($file);
             $unstarted_path = $this->trimSrcPath($this->trimPathStart($html_file_path));
+            $unprefixed_path = $this->removePrefix($unstarted_path);
             $link = $twig->render('link.html.twig', ['link' => [
-                'href' => '/' . $this->phpToHtmlExt($unstarted_path),
+                'href' => '/' . $this->phpToHtmlExt($unprefixed_path),
                 'text' => \str_replace('.php', '', $this->getFilename($file)),
             ]]);
             \file_put_contents($this->getViewsPath() . '/tmp/links.html.twig', $link, FILE_APPEND);
@@ -129,6 +145,20 @@ class Creator
         \touch($index_file);
         $data = $twig->render('base.html.twig', $this->options);
         \file_put_contents($index_file, $data);
+    }
+
+    /**
+     * Удалить префикс.
+     *
+     * @param string $string Строка
+     *
+     * @return string
+     */
+    private function removePrefix(string $string): string
+    {
+        $clear_string = \str_replace($this->removed_prefix, '', $string);
+
+        return $clear_string;
     }
 
     /**
