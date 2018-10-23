@@ -10,7 +10,7 @@ PHP static documentation generator
 Запустить `phpdocgen/bin/phpdocgen` из директории с конфигурацией.
 ### Если проект установлен в качестве зависимости:
 ```php
-(new \PDG\Generator())
+(new \PDG\Component\DocGenerator())
     ->setConfigFile('path_to_your_config/phpdocgen.json')
     ->run();
 ```
