@@ -2,18 +2,8 @@
 
 <?php
 
-$packagist_autoload = 'vendor/autoload.php';
-$source_autoload = __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__ . '/../vendor/autoload.php';
 
-if (\file_exists($packagist_autoload)) {
-    require_once $packagist_autoload;
-} else {
-    require_once $source_autoload;
-}
-
-use PDG\Component\Console;
-
-$json = new \PDG\Component\JsonReader('phpdocgen.json');
-$json->read();
-$console = new Console($json);
-$console->run($argv);
+(new \PDG\Generator())
+    ->setConfigFile('phpdocgen.json')
+    ->run();
