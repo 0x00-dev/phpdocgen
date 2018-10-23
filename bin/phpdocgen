@@ -2,7 +2,14 @@
 
 <?php
 
-require_once __DIR__ . '../../vendor/autoload.php';
+$packagist_autoload = __DIR__ . 'vendor/autoload.php';
+$source_autoload = __DIR__ . '/../vendor/autoload.php';
+
+if (\file_exists($packagist_autoload)) {
+    require_once $packagist_autoload;
+} else {
+    require_once $source_autoload;
+}
 
 use PDG\Component\Console;
 
