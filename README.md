@@ -3,11 +3,18 @@ PHP static documentation generator
 
 [![Build Status](https://travis-ci.org/0x00-dev/phpdocgen.svg?branch=master)](https://travis-ci.org/0x00-dev/phpdocgen)
 
-## Как использовать
-1. Скопировать файл `phpdocgen.example.json` в директорию генерации.
-2. Переименовать `phpdocgen.example.json` в `phpdocgen.json`.
-3. Настроить параметры генерации.
-4. Запустить `phpdocgen/bin/phpdocgen`.
+## Как использовать:
+1. Скопировать файл `phpdocgen.json` в директорию генерации.
+2. Настроить параметры генерации.
+### Если проект был распакован/клонирован:
+Запустить `phpdocgen/bin/phpdocgen` из директории с конфигурацией.
+### Если проект установлен в качестве зависимости:
+```php
+(new \PDG\Generator())
+    ->setConfigFile('path_to_your_config/phpdocgen.json')
+    ->run();
+```
+
 
 ## Настройка генератора
 
