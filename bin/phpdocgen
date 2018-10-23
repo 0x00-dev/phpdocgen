@@ -2,8 +2,10 @@
 
 <?php
 
+use PDG\Component\DocGenerator;
+
 require_once __DIR__ . '/../vendor/autoload.php';
 
-(new \PDG\Generator())
+(new DocGenerator())
     ->setConfigFile('phpdocgen.json')
     ->run();

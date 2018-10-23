@@ -1,13 +1,11 @@
 <?php
-namespace PDG;
+namespace PDG\Component;
 
-use PDG\Component\Console;
-use PDG\Component\JsonReader;
 
 /**
  * Генератор.
  */
-class Generator
+class DocGenerator
 {
     /**
      * Файл конфигурации.
@@ -21,9 +19,9 @@ class Generator
      *
      * @param string $config_file Файл конфигурации
      *
-     * @return Generator
+     * @return DocGenerator
      */
-    public function setConfigFile(string $config_file): Generator
+    public function setConfigFile(string $config_file): DocGenerator
     {
         $this->config_file = $config_file;
 
