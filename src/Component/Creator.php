@@ -216,7 +216,7 @@ class Creator
      */
     private function getFilename(string $file_path): string
     {
-        $file_array = explode('/', $file_path);
+        $file_array = \explode('/', $file_path);
 
         return $file_array[count($file_array) - 1];
     }
@@ -232,7 +232,7 @@ class Creator
 
         $twig = new Twig_Environment($loader, [
             'debug' => true,
-            'cache' => './phpdocgen/cache',
+            'cache' => false,
         ]);
         $twig->addExtension(new Twig_Extension_Debug());
 
