@@ -2,7 +2,7 @@
     "name": "0x00/phpdocgen",
     "description": "Easy static documentation generator",
     "type": "project",
-    "license": "GPL",
+    "license": "GPL-3.0-or-later",
     "authors": [
         {
             "name": "0x00-dev",
