@@ -1087,8 +1087,10 @@ class Parser
      *
      * @return bool
      */
-    private function isInheritDoc(string $doc): bool
+    private function isInheritDoc(?string $doc): bool
     {
+        $doc = $doc ?? '';
+
         return \in_array(\trim($doc), ['@inheritdoc', '{@inheritdoc}']);
     }
 }
