@@ -30,6 +30,35 @@
             </li>
         {% endif %}
         <li>
+            <div class="item-title">Константы: </div>
+            {% if object.constants|length > 0%}
+                <div class="spoiler-btn" data-target="constants">-</div>
+                <div class="spoiler-block" id="constants">
+                    {% for constant in object.constants %}
+                        <div class="constant" id="{{ constant.name }}">
+                            {% if constant.modifer %}
+                                <div class="fullblock">
+                                    <div class="badge badge-info">{{ constant.modifer }}</div>
+                                </div>
+                            {% endif %}
+                            <div class="fullblock">
+                                <div class="about">{{ constant.about|raw }}</div>
+                            </div><br/>
+                            <div class="name">{{ constant.name }}</div><div class="type">
+                                <span class="block">(</span>
+                                <span class="block">{{ constant.type|raw }}</span>
+                                <span class="block">)</span>
+                            </div>
+                            <div class="fullblock"></div>
+                            <div class="value">{{ constant.value }}</div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="name">Не определены.</div>
+            {% endif %}
+        </li>
+        <li>
             <div class="item-title">Поля: </div>
             {% if object.properties|length > 0%}
                 <div class="spoiler-btn" data-target="fields">-</div>

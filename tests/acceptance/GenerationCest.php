@@ -1,6 +1,8 @@
 <?php
 
-
+/**
+ * Тест сгенерированной документации.
+ */
 class GenerationCest
 {
     public function tryToTest(AcceptanceTester $I)
@@ -20,7 +22,7 @@ class GenerationCest
         $I->see('Имя: GeneratorTestClass');
         $I->see('Описание: Тестовый класс для генерации документации.');
         /**
-         * Search fields
+         * Search fields.
          */
         $I->see('Поля:');
         /**
@@ -48,14 +50,14 @@ class GenerationCest
         $I->see('protected_field', '#protected_field .name');
         $I->see('\Countable', '#protected_field .type');
         /**
-         * Search methods
+         * Search methods.
          */
         $I->see('Методы:');
         /**
          * Search getPrivateField()
          */
         $I->seeElement('#method_getPrivateField');
-        $I->see('GeneratorTestClassInterface::getPrivateField', '#method_getPrivateField .about');
+        $I->seeLink('GeneratorTestClassInterface::getPrivateField', '/TestComponent/Interfaces/GeneratorTestClassInterface.html#method_getPrivateField');
         $I->click('GeneratorTestClassInterface::getPrivateField');
         $I->seeInTitle('GeneratorTestClassInterface');
         $I->seeElement('#method_getPrivateField');
@@ -77,5 +79,25 @@ class GenerationCest
         $I->see('Получить защищенное поле.', '#method_getProtectedField .about');
         $I->see('public', '#method_getProtectedField .visibility');
         $I->see('\Countable', '#method_getProtectedField .type');
+        /**
+         * Search constants.
+         */
+        $I->see('Константы:');
+        /**
+         * Search TEST_PRIVATE_CONST
+         */
+        $I->seeElement('#TEST_PRIVATE_CONST');
+        $I->see('Тестовая закрытая константа.', '#TEST_PRIVATE_CONST .about');
+        $I->see('bool', '#TEST_PRIVATE_CONST .type');
+        $I->see('false', '#TEST_PRIVATE_CONST .value');
+        $I->see('private', '#TEST_PRIVATE_CONST .badge');
+        /**
+         * Search TEST_PUBLIC_CONST
+         */
+        $I->seeElement('#TEST_PUBLIC_CONST');
+        $I->see('Тестовая открытая константа.', '#TEST_PUBLIC_CONST .about');
+        $I->see('string', '#TEST_PUBLIC_CONST .type');
+        $I->see('Тестовая константа.', '#TEST_PUBLIC_CONST .value');
+        $I->see('public', '#TEST_PUBLIC_CONST .badge');
     }
 }

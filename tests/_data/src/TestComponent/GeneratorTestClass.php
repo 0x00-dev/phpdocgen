@@ -9,6 +9,20 @@ use TestComponent\Interfaces\GeneratorTestClassInterface;
 class GeneratorTestClass implements GeneratorTestClassInterface
 {
     /**
+     * Тестовая закрытая константа.
+     *
+     * @const bool
+     */
+    private const TEST_PRIVATE_CONST = false;
+
+    /**
+     * Тестовая открытая константа.
+     *
+     * @const string
+     */
+    public const TEST_PUBLIC_CONST = 'Тестовая константа.';
+
+    /**
      * Закрытое поле.
      *
      * @var string

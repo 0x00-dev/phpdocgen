@@ -33,7 +33,7 @@ class DocGenerator
      */
     public function run(): void
     {
-        $json = new JsonReader('phpdocgen.json');
+        $json = new JsonReader($this->config_file);
         $json->read();
         $console = new Console($json);
         $console->run();

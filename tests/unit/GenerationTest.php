@@ -10,7 +10,7 @@ class GenerationTest extends \Codeception\Test\Unit
      */
     public function testGenerate()
     {
-        $test_dir = 'tests/_data';
+        $test_dir = getcwd() . '/tests/_data';
         (new \PDG\Component\DocGenerator())
             ->setConfigFile("$test_dir/phpdocgen.json")
             ->run();
