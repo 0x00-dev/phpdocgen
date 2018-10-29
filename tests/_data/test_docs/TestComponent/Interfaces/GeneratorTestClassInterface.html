@@ -44,6 +44,10 @@
             <div class="name"> Тестовый класс для генерации документации.</div>
         </li>
                 <li>
+            <div class="item-title">Константы: </div>
+                            <div class="name">Не определены.</div>
+                    </li>
+        <li>
             <div class="item-title">Поля: </div>
                             <div class="name">Не определены.</div>
                     </li>
@@ -423,6 +427,70 @@
     line-height: 24px;
 }
 
+.constant
+{
+    float: left;
+    width: 100%;
+    padding: 10px;
+    background-color: rgb(250,250,250);
+    margin-top: 10px;
+    clear: both;
+    color: rgb(66,66,66);
+}
+
+.constant *
+{
+    float: left;
+}
+
+.constant .about
+{
+    width: 100%;
+    color: rgb(66,66,66);
+    font-style: italic;
+    font-size: 13pt;
+    padding-bottom: 20px;
+}
+
+.constant .name
+{
+    color: #bd2130;
+    font-size: 12pt;
+    padding-bottom: 5px;
+    text-decoration: underline;
+    margin-left: 5px;
+}
+
+.constant .type
+{
+    color: #117a8b;
+}
+
+.constant .value
+{
+    color: #0c5460;
+    float: left;
+    padding: 5px;
+    width: 100%;
+    background-color: rgb(234,234,234);
+    margin-top: 5px;
+}
+
+.constant hr
+{
+    width: calc(100% - 20px);
+    background-color: rgb(66,66,66);
+    color: rgb(66,66,66);
+    border: none;
+    height: 1px;
+}
+
+.constant a
+{
+    color: inherit!important;
+    float: left;
+}
+
 .return-type
 {
     margin-left: 0!important;
@@ -450,7 +518,8 @@
 .coral
 {
     color: coral;
-}            /*!
+}
+            /*!
  * Bootstrap v4.1.1 (https://getbootstrap.com/)
  * Copyright 2011-2018 The Bootstrap Authors
  * Copyright 2011-2018 Twitter, Inc.

@@ -63,11 +63,18 @@ class Parser
     private const ABOUT_PATTERN = '^\/[\*\s]+?(([a-zA-Zа-яА-Я0-9.\- ]+)[\.]$|({@inheritdoc}|@inheritdoc[\s]$))$';
 
     /**
-     * Шаблон свойств.
+     * Шаблон свойства.
      *
      * @const string
      */
     private const PROPERTY_PATTERN = '\/[*\s]+([a-zA-Zа-яА-Я0-9.\s\-\@\+,{}]+)[\s*]+(@var\s([a-zA-Z_\\\]+)|\{@inheritdoc\})[\s*\/]+([a-z]+)(\s[a-zA-Z]+)?\s\$([a-z_]+)(\s=\s([\s\na-zA-Z0-9\]\[\@\,\'\"\_\-]+))?\;$';
+
+    /**
+     * Шаблон константы класса.
+     *
+     * @const string
+     */
+    private const CONST_PATTERN = '\/[*\s]+(.*)[\s*]+(@const\s([a-zA-Z_\\\]+))[\s*\/]+([a-z]+)?\sconst\s([A-Z_]+)\s{0,}=\s{0,}(\' | \")?(.*)(\'|\")?;$';
 
     /**
      * Шаблон наследования.
@@ -253,6 +260,41 @@ class Parser
     private const I_METHOD_PARAM_ABOUT = 4;
 
     /**
+     * Индекс описания константы.
+     *
+     * @const int
+     */
+    private const I_CONST_ABOUT = 1;
+
+    /**
+     * Индекс типа константы.
+     *
+     * @const int
+     */
+    private const I_CONST_TYPE = 3;
+
+    /**
+     * Индекс модификатора константы.
+     *
+     * @const int
+     */
+    private const I_CONST_MODIFER = 4;
+
+    /**
+     * Индекс имени константы.
+     *
+     * @const int
+     */
+    private const I_CONST_NAME = 5;
+
+    /**
+     * Индекс значения константы.
+     *
+     * @const int
+     */
+    private const I_CONST_VALUE = 7;
+
+    /**
      * Установить директорию документов.
      *
      * @param string $doc_dir Директория документов
@@ -324,6 +366,7 @@ class Parser
         $parent = $this->getParent();
         $interfaces = $this->getInterfaces();
         $methods = $this->getMethods();
+        $constants = $this->getConstants();
 
         $this->setObjectParent($parent);
         $this->setObjectNamespace($namespace);
@@ -334,6 +377,7 @@ class Parser
         $this->setObjectAbout($about);
         $this->setObjectProperties($properties);
         $this->setObjectMethods($methods);
+        $this->setObjectConstants($constants);
 
         return $this->object;
     }
@@ -664,6 +708,16 @@ class Parser
     }
 
     /**
+     * Получить константы.
+     *
+     * @return iterable
+     */
+    private function getConstants(): iterable
+    {
+        return $this->findAll($this->data, static::CONST_PATTERN);
+    }
+
+    /**
      * Получить подключения классов.
      *
      * @param string $data Данные
@@ -946,6 +1000,25 @@ class Parser
             $current_method['about'] = $method_info['about'];
             $current_method['params_list'] = $method_info['params_list'];
             $this->object['methods'][] = $current_method;
+        }
+    }
+
+    /**
+     * Установить константы.
+     *
+     * @param iterable $constants Константы
+     */
+    private function setObjectConstants(iterable $constants): void
+    {
+        $this->object['constants'] = [];
+        foreach ($constants as $constant) {
+            $current_const = [];
+            $current_const['about'] = $constant[static::I_CONST_ABOUT];
+            $current_const['type'] = $constant[static::I_CONST_TYPE];
+            $current_const['name'] = $constant[static::I_CONST_NAME];
+            $current_const['modifer'] = $constant[static::I_CONST_MODIFER];
+            $current_const['value'] = $constant[static::I_CONST_VALUE];
+            $this->object['constants'][] = $current_const;
         }
     }
 

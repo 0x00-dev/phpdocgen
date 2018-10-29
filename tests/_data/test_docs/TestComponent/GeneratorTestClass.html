@@ -51,6 +51,42 @@
                                     </div>
             </li>
                 <li>
+            <div class="item-title">Константы: </div>
+                            <div class="spoiler-btn" data-target="constants">-</div>
+                <div class="spoiler-block" id="constants">
+                                            <div class="constant" id="TEST_PRIVATE_CONST">
+                                                            <div class="fullblock">
+                                    <div class="badge badge-info">private</div>
+                                </div>
+                                                        <div class="fullblock">
+                                <div class="about">Тестовая закрытая константа.</div>
+                            </div><br/>
+                            <div class="name">TEST_PRIVATE_CONST</div><div class="type">
+                                <span class="block">(</span>
+                                <span class="block">bool</span>
+                                <span class="block">)</span>
+                            </div>
+                            <div class="fullblock"></div>
+                            <div class="value">false</div>
+                        </div>
+                                            <div class="constant" id="TEST_PUBLIC_CONST">
+                                                            <div class="fullblock">
+                                    <div class="badge badge-info">public</div>
+                                </div>
+                                                        <div class="fullblock">
+                                <div class="about">Тестовая открытая константа.</div>
+                            </div><br/>
+                            <div class="name">TEST_PUBLIC_CONST</div><div class="type">
+                                <span class="block">(</span>
+                                <span class="block">string</span>
+                                <span class="block">)</span>
+                            </div>
+                            <div class="fullblock"></div>
+                            <div class="value">&#039;Тестовая константа.&#039;</div>
+                        </div>
+                                    </div>
+                    </li>
+        <li>
             <div class="item-title">Поля: </div>
                             <div class="spoiler-btn" data-target="fields">-</div>
                 <div class="spoiler-block" id="fields">
@@ -512,6 +548,70 @@
     line-height: 24px;
 }
 
+.constant
+{
+    float: left;
+    width: 100%;
+    padding: 10px;
+    background-color: rgb(250,250,250);
+    margin-top: 10px;
+    clear: both;
+    color: rgb(66,66,66);
+}
+
+.constant *
+{
+    float: left;
+}
+
+.constant .about
+{
+    width: 100%;
+    color: rgb(66,66,66);
+    font-style: italic;
+    font-size: 13pt;
+    padding-bottom: 20px;
+}
+
+.constant .name
+{
+    color: #bd2130;
+    font-size: 12pt;
+    padding-bottom: 5px;
+    text-decoration: underline;
+    margin-left: 5px;
+}
+
+.constant .type
+{
+    color: #117a8b;
+}
+
+.constant .value
+{
+    color: #0c5460;
+    float: left;
+    padding: 5px;
+    width: 100%;
+    background-color: rgb(234,234,234);
+    margin-top: 5px;
+}
+
+.constant hr
+{
+    width: calc(100% - 20px);
+    background-color: rgb(66,66,66);
+    color: rgb(66,66,66);
+    border: none;
+    height: 1px;
+}
+
+.constant a
+{
+    color: inherit!important;
+    float: left;
+}
+
 .return-type
 {
     margin-left: 0!important;
@@ -539,7 +639,8 @@
 .coral
 {
     color: coral;
-}            /*!
+}
+            /*!
  * Bootstrap v4.1.1 (https://getbootstrap.com/)
  * Copyright 2011-2018 The Bootstrap Authors
  * Copyright 2011-2018 Twitter, Inc.
