@@ -22,4 +22,7 @@
     "require-dev": {
         "twig/twig": "^2.5"
     }
+    "config": {
+        "bin-dir": "bin"
+    }
 }
