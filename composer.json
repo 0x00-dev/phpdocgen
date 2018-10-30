@@ -16,9 +16,11 @@
     },
     "minimum-stability": "dev",
     "require": {
-        "codeception/codeception": "^2.4"
+        "codeception/codeception": "^2.4",
+      "ext-json": "*"
     },
     "require-dev": {
-        "twig/twig": "^2.5"
+        "twig/twig": "^2.5",
+        "phpstan/phpstan": "^0.10.0@dev"
     }
 }
