@@ -6,7 +6,6 @@ namespace PDG\Component;
  */
 class Console
 {
-
     /**
      * Исходная директория.
      *
@@ -56,6 +55,13 @@ class Console
      */
     private $options = [];
 
+    /**
+     * Флаги.
+     *
+     * @var iterable
+     */
+    private $flags = [];
+
 
     /**
      * Console constructor.
@@ -71,6 +77,7 @@ class Console
         $this->pattern = $json->get('pattern');
         $this->prefix = $json->get('removed_prefix', '');
         $this->options = $json->get('twig_options', []);
+        $this->flags = $json->get('flags', []);
     }
 
     /**
@@ -89,6 +96,8 @@ class Console
             ->setRemovedPrefix($this->prefix);
         $creator = new Creator($dir_reader, $doc_reader, $parser, $this->options, $this->views, $this->dst_dir);
         $creator->setRemovedPrefix($this->prefix);
+        $creator->setFlags($this->flags);
+        $creator->setViews($this->views);
         $creator->create();
     }
 }

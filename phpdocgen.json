@@ -6,5 +6,6 @@
   "removed_prefix" : "",
   "twig_options" : {
     "this_name" :  "PHP static documentation generator"
-  }
+  },
+  "flags" : ["-l"]
 }
