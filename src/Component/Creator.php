@@ -1,9 +1,6 @@
 <?php
 namespace PDG\Component;
 
-use Twig_Environment;
-use Twig_Extension_Debug;
-use Twig_Loader_Filesystem;
 
 /**
  * Создатель.
@@ -228,13 +225,13 @@ class Creator
      */
     private function getRender()
     {
-        $loader = new Twig_Loader_Filesystem($this->getViewsPath());
+        $loader = new \Twig\Loader\FilesystemLoader($this->getViewsPath());
 
-        $twig = new Twig_Environment($loader, [
+        $twig = new \Twig\Environment($loader, [
             'debug' => true,
             'cache' => false,
         ]);
-        $twig->addExtension(new Twig_Extension_Debug());
+        $twig->addExtension(new \Twig\Extension\DebugExtension());
 
         return $twig;
     }
