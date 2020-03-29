@@ -57,6 +57,18 @@ class Creator
     private $options = [];
 
     /**
+     * Флаги.
+     *
+     * @var iterable
+     */
+    private $flags = [];
+
+    /**
+     * Флаг списка.
+     */
+    public const LIST_FLAG = "-l";
+
+    /**
      * Creator constructor.
      *
      * @param DirReader $dir_reader Читатель директорий
@@ -77,15 +89,25 @@ class Creator
     }
 
     /**
+     * Установить флаги.
+     *
+     * @param iterable $flags Флаги
+     */
+    public function setFlags(iterable $flags): void
+    {
+        $this->flags = $flags;
+    }
+
+    /**
      * Установить директорию хранения шаблонов.
      *
      * @param string $views Директория хранения шаблонов.
      *
      * @return Creator
      */
-    public function setViews(string $views): Creator
+    public function setViews(?string $views): Creator
     {
-        $this->views = $views;
+        $this->views = $views ?? '/twig_tpl';
 
         return $this;
     }
@@ -113,6 +135,9 @@ class Creator
             $data = $this->doc_reader->setClassFile($file)->read();
             $items = $this->parser->setData($data)->read();
             $html_file_path = $this->phpToHtmlExt($file);
+            if (\in_array(self::LIST_FLAG, $this->flags)) {
+                echo $html_file_path . PHP_EOL;
+            }
             $unstarted_path = $this->trimSrcPath($this->trimPathStart($html_file_path));
             $unprefixed_path = $this->removePrefix($unstarted_path);
             $link = $twig->render('link.html.twig', ['link' => [
@@ -125,6 +150,7 @@ class Creator
         foreach ($files as $file) {
             $twig = $this->getRender();
             $file_path = \str_replace($this->dir_reader->getDir() . '/', '', $file);
+            if ($this->flags)
             $html_file_path = $this->phpToHtmlExt($file_path);
             $unstarted_path = $this->trimPathStart($html_file_path);
             $docs_file_path = "{$this->dst_dir}/$unstarted_path";
@@ -221,7 +247,7 @@ class Creator
     /**
      * Получить рендер.
      *
-     * @return Twig_Environment
+     * @return \Twig\Environment
      */
     private function getRender()
     {
