@@ -1,9 +1,10 @@
 # phpdocgen
+
+[![Build Status](https://travis-ci.org/0x00-dev/phpdocgen.svg?branch=master)](https://travis-ci.org/0x00-dev/phpdocgen)
+
 PHP static documentation generator
 
 ![Image alt](https://github.com/0x00-dev/phpdocgen/raw/master/example.jpg)
-
-[![Build Status](https://travis-ci.org/0x00-dev/phpdocgen.svg?branch=master)](https://travis-ci.org/0x00-dev/phpdocgen)
 
 ## Как использовать:
 1. Настроить параметры генерации.
