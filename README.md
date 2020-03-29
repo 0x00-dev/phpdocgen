@@ -45,6 +45,7 @@ PHP static documentation generator
 | `twig_options`      | Параметры для передачи в шаблонизатор         |                                         |
 | `this_name`         | Имя документации. Учавствует в title и brand  | PHP static documentation generator      |
 | `flags`             | Флаги                                         | [-l]                                    |
+
 **Наличие всех параметров в конфигурации не обязательно.**
 
 |      Флаг       |                    Описание                   |
