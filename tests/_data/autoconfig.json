@@ -1,0 +1,10 @@
+{
+  "src" : "tests/_data/src",
+  "dst" : "tests/_data/test_docs",
+  "exclude" : [".", "..", ".git", ".idea"],
+  "file_pattern" : "^[a-zA-Z0-9\\_]+\\.php$",
+  "removed_prefix" : "tests/_data/",
+  "twig_options" : {
+    "this_name" :  "Тестовая страница документации."
+  }
+}
