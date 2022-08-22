@@ -30,8 +30,7 @@ jobs:
         
       - name: Install
         run: |
-          install phantomjs
-          composer install --prefer-source
+          npm install phantomjs
         
       - name: Tests
         run: |
