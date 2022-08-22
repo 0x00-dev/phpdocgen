@@ -32,7 +32,7 @@ jobs:
         
       - name: Tests
         run: |
-          npm install phantomjs/phantomjs,
+          npm install phantomjs,
           php -S 127.0.0.1:8888 -t ./tests/_data/docs>/dev/null 2>&1 &,
           phantomjs --webdriver=4444 >/dev/null 2>&1 &,
           composer install --prefer-source,
