@@ -22,6 +22,10 @@ jobs:
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '7.2'
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - name: Checkout 🛎️
         uses: actions/checkout@v2.3.1
@@ -34,7 +38,7 @@ jobs:
         
       - name: Tests
         run: |
-          -S 127.0.0.1:8888 -t ./tests/_data/docs>/dev/null 2>&1 &,
+          php -S 127.0.0.1:8888 -t ./tests/_data/docs>/dev/null 2>&1 &,
           phantomjs --webdriver=4444 >/dev/null 2>&1 &,
           composer install --prefer-source,
           vendor/bin/codecept run -d.
