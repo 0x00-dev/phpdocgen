@@ -25,6 +25,12 @@ class GenerationTest extends \Codeception\Test\Unit
         $expected_indexfile_data = \fread($expected_indexfile_descriptor, \filesize("$test_dir/docs/index.html"));
         $etalon_indexfile_data = \fread($etalon_indexfile_descriptor, \filesize("$test_dir/test_docs/index.html"));
         
+        $expected_indexfile_data = \str_replace("\n", '', $expected_indexfile_data);
+        $etalon_indexfile_data = \str_replace("\n", '', $etalon_indexfile_data);
+        
+        $expected_indexfile_data = \str_replace("\r", '', $expected_indexfile_data);
+        $etalon_indexfile_data = \str_replace("\r", '', $etalon_indexfile_data);
+        
         \fclose($expected_indexfile_descriptor);
         \fclose($etalon_indexfile_descriptor);
         
@@ -35,6 +41,12 @@ class GenerationTest extends \Codeception\Test\Unit
        
         $expected_classfile_data = \fread($expected_file_descriptor, \filesize("$test_dir/docs/TestComponent/GeneratorTestClass.html"));
         $etalon_classfile_data = \fread($etalon_file_descriptor, \filesize("$test_dir/test_docs/TestComponent/GeneratorTestClass.html"));
+        
+        $expected_classfile_data = \str_replace("\n", '', $expected_classfile_data);
+        $etalon_classfile_data = \str_replace("\n", '', $etalon_classfile_data);
+        
+        $expected_classfile_data = \str_replace("\r", '', $expected_classfile_data);
+        $etalon_classfile_data = \str_replace("\r", '', $etalon_classfile_data);
         
         \fclose($expected_classfile_descriptor);
         \fclose($etalon_classfile_descriptor);
