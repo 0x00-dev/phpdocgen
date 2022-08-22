@@ -18,13 +18,27 @@ class GenerationTest extends \Codeception\Test\Unit
         $this->assertFileExists("$test_dir/docs/index.html", 'Проверяем, что заглавный файл страницы создан.');
         $this->assertDirectoryExists("$test_dir/docs/TestComponent", 'Проверяем, что директория TestComponent создана.');
         $this->assertFileExists("$test_dir/docs/TestComponent/GeneratorTestClass.html", 'Проверяем, что документация для GeneratorTest создана.');
-        $this->assertFileEquals("$test_dir/docs/index.html", "$test_dir/test_docs/index.html", 'Проверяем, что сгенерированный заглавный файл и эталон одинаковы.');
-        $expected_file_descriptor = \fopen("$test_dir/docs/TestComponent/GeneratorTestClass.html",'r');
-        $etalon_file_descriptor = \fopen("$test_dir/test_docs/TestComponent/GeneratorTestClass.html",'r');
-        $expected_file_data = \fread($expected_file_descriptor, \filesize("$test_dir/docs/TestComponent/GeneratorTestClass.html"));
-        $etalon_file_data = \fread($etalon_file_descriptor, \filesize("$test_dir/test_docs/TestComponent/GeneratorTestClass.html"));
-        \fclose($expected_file_descriptor);
-        \fclose($etalon_file_descriptor);
-        $this->assertEquals($expected_file_data, $etalon_file_data, 'Проверяем, что сгенерированный файл класса и эталон одинаковы.');
+        
+        $expected_indexfile_descriptor = \fopen("$test_dir/docs/index.html", 'r');
+        $etalon_indexfile_descriptor = \fopen("$test_dir/test_docs/index.html", 'r');
+        
+        $expected_indexfile_data = \fread($expected_indexfile_descriptor, \filesize("$test_dir/docs/index.html"));
+        $etalon_indexfile_data = \fread($etalon_indexfile_descriptor, \filesize("$test_dir/test_docs/index.html"));
+        
+        \fclose($expected_indexfile_descriptor);
+        \fclose($etalon_indexfile_descriptor);
+        
+        $this->assertEquals($expected_indexfile_data, $etalon_indexfile_data, 'Проверяем, что сгенерированный заглавный файл и эталон одинаковы.');
+        
+        $expected_classfile_descriptor = \fopen("$test_dir/docs/TestComponent/GeneratorTestClass.html",'r');
+        $etalon_classfile_descriptor = \fopen("$test_dir/test_docs/TestComponent/GeneratorTestClass.html",'r');
+       
+        $expected_classfile_data = \fread($expected_file_descriptor, \filesize("$test_dir/docs/TestComponent/GeneratorTestClass.html"));
+        $etalon_classfile_data = \fread($etalon_file_descriptor, \filesize("$test_dir/test_docs/TestComponent/GeneratorTestClass.html"));
+        
+        \fclose($expected_classfile_descriptor);
+        \fclose($etalon_classfile_descriptor);
+        
+        $this->assertEquals($expected_classfile_data, $etalon_classfile_data, 'Проверяем, что сгенерированный файл класса и эталон одинаковы.');
     }
 }
