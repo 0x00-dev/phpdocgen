@@ -43,7 +43,7 @@ PHP static documentation generator
 | `file_pattern`      | Шаблон поиска имени файла для генерации       | *^[a-zA-Z0-9\\_]+\\.php$*               |
 | `removed_prefix`    | Удаялемый префикс пути                        |                                         |
 | `twig_options`      | Параметры для передачи в шаблонизатор         |                                         |
-| `this_name`         | Имя документации. Учавствует в title и brand  | PHP static documentation generator      |
+| `this_name`         | Имя документации. Участвует в title и brand  | PHP static documentation generator      |
 | `flags`             | Флаги                                         | [-l]                                    |
 
 **Наличие всех параметров в конфигурации не обязательно.**
