@@ -23,5 +23,7 @@
     "require-dev": {
         "twig/twig": "^2.5",
         "phpstan/phpstan": "^0.10.0@dev"
+    },
+    "scripts": {
+    	"post-package-install": "PDG\\Console::postPackageInstall"
     }
-}

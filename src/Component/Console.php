@@ -1,6 +1,8 @@
 <?php
 namespace PDG\Component;
 
+use Composer\Script\Event;
+
 /**
  * Консоль.
  */
@@ -100,4 +102,19 @@ class Console
         $creator->setViews($this->views);
         $creator->create();
     }
+    
+    /**
+     * Выполнить действия после установки.
+     */
+     public static function postPackageInstall(Event $event)
+     {
+     	$vendor_dir = $event->getComposer()->getConfig()->get('vendor-dir');
+     	$pdg_bin = $vendor_dir . '/0x00-dev/phpdocgen/bin/phpdocgen';
+     	$dst_bin = './bin';
+     	if (!\file_exists($dst_bin)) {
+     		\mkdir($dstbin);
+     	}
+     	\move($pgdbin, $dstbin . '/phpdocgen');
+     }
 }
+
