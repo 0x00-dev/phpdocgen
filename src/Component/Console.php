@@ -106,7 +106,7 @@ class Console
     /**
      * Выполнить действия после установки.
      */
-     public static function postPackageInstall(Event $event)
+     public static function postInstallCmd(Event $event)
      {
      	$vendor_dir = $event->getComposer()->getConfig()->get('vendor-dir');
      	$pdg_bin = $vendor_dir . '/bin/phpdocgen';
