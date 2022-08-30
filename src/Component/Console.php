@@ -102,19 +102,5 @@ class Console
         $creator->setViews($this->views);
         $creator->create();
     }
-    
-    /**
-     * Выполнить действия после установки.
-     */
-     public static function postInstallCmd(Event $event)
-     {
-     	$vendor_dir = $event->getComposer()->getConfig()->get('vendor-dir');
-     	$pdg_bin = $vendor_dir . '/bin/phpdocgen';
-     	$dst_bin = 'bin';
-     	if (!\file_exists($dst_bin)) {
-     		\mkdir($dst_bin);
-     	}
-     	\copy($pgd_bin, $dst_bin . '/phpdocgen');
-     }
 }
 
