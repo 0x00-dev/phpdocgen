@@ -3,9 +3,7 @@
     "description": "Easy static documentation generator",
     "type": "package",
     "license": "GPL-3.0-or-later",
-    "config": {
-    	"bin-dir": "bin"
-    },
+    "bin": "bin/phpdocgen",
     "authors": [
         {
             "name": "0x00-dev",

@@ -1,6 +1,8 @@
 <?php
 namespace PDG\Component;
 
+use Composer\Script\Event;
+
 /**
  * Консоль.
  */
@@ -100,5 +102,10 @@ class Console
         $creator->setViews($this->views);
         $creator->create();
     }
+    
+    public static function testInstall(Event $event)
+    {
+		var_dump($event->getComposer()->getConfig());
+	}
 }
 
