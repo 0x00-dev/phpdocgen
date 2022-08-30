@@ -25,7 +25,7 @@
         "phpstan/phpstan": "^0.10.0@dev"
     },
     "scripts": {
-    	"post-package-install": "PDG\\Console::postPackageInstall"
+    	"post-install-cmd": "PDG\\Console::postInstallCmd"
     }
 }
 
