@@ -3,7 +3,7 @@
     "description": "Easy static documentation generator",
     "type": "package",
     "license": "GPL-3.0-or-later",
-    "bin": ["bin/phpdocgen"],
+    "bin-dir": "./bin",
     "authors": [
         {
             "name": "0x00-dev",
@@ -23,9 +23,6 @@
     "require-dev": {
         "twig/twig": "^2.5",
         "phpstan/phpstan": "^0.10.0@dev"
-    },
-    "config": {
-    	"bin-dir": "bin"
     }
 }
 
