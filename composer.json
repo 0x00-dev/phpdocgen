@@ -4,7 +4,7 @@
     "type": "package",
     "license": "GPL-3.0-or-later",
     "config": {
-    	"bin-dir": "./bin"
+    	"bin-dir": "bin"
     },
     "authors": [
         {
