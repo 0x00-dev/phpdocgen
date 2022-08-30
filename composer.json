@@ -3,6 +3,12 @@
     "description": "Easy static documentation generator",
     "type": "package",
     "license": "GPL-3.0-or-later",
+    "config": {
+        "bin-dir": "bin"
+    },
+    "scripts": {
+    	"test": ["PDG\\Component\\Console::testInstall"]
+    },
     "bin": "bin/phpdocgen",
     "authors": [
         {
