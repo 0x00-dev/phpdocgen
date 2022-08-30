@@ -24,8 +24,8 @@
         "twig/twig": "^2.5",
         "phpstan/phpstan": "^0.10.0@dev"
     },
-    "scripts": {
-    	"post-install-cmd": "PDG\\Console::postInstallCmd"
+    "config": {
+    	"bin-dir": "bin"
     }
 }
 
