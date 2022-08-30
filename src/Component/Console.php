@@ -1,7 +1,6 @@
 <?php
 namespace PDG\Component;
 
-use Composer\Script\Event;
 
 /**
  * Консоль.
