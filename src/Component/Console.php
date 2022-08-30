@@ -108,13 +108,14 @@ class Console
      */
      public static function postPackageInstall(Event $event)
      {
+ 		var_dump($event->getComposer()->getConfig());
      	$vendor_dir = $event->getComposer()->getConfig()->get('vendor-dir');
      	$pdg_bin = $vendor_dir . '/0x00-dev/phpdocgen/bin/phpdocgen';
-     	$dst_bin = './bin';
+     	$dst_bin = 'bin';
      	if (!\file_exists($dst_bin)) {
      		\mkdir($dstbin);
      	}
-     	\move($pgdbin, $dstbin . '/phpdocgen');
+     	\copy($pgdbin, $dstbin . '/phpdocgen');
      }
 }
 
