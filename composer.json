@@ -3,7 +3,9 @@
     "description": "Easy static documentation generator",
     "type": "package",
     "license": "GPL-3.0-or-later",
-    "bin": "./bin",
+    "config": {
+    	"bin-dir": "./bin"
+    },
     "authors": [
         {
             "name": "0x00-dev",
